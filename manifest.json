@@ -1,0 +1,9 @@
+{
+    "manifest_version": 3,
+    "name": "Movie Reservation",
+    "description": "Movie Reservation Alert",
+    "version": "1.0", 
+    "action": {       
+        "default_popup": "html/popup.html"  
+    }
+}
