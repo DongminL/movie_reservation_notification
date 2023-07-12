@@ -20,7 +20,7 @@ async function crawler() {
             headless: "new"
         });
         const page = await browser.newPage();
-        await page.goto("http://www.cgv.co.kr/theaters/?areacode=01&theaterCode=0013&date=20230715");   // CGV 용산아이파크몰점 예매 사이트 접속
+        await page.goto("http://www.cgv.co.kr/theaters/?areacode=01&theaterCode=0013&date=20230726");   // CGV 용산아이파크몰점 예매 사이트 접속
 
         // 상영시간표 정보가 담긴 iframe으로 전환
         const ifrmHandle = await page.$('iframe[id="ifrm_movie_time_table"]');
