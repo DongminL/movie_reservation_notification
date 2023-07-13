@@ -100,6 +100,7 @@ bot.onText(/\/setdate (.+)/, (msg, match) => {
     if (fnisDate(date)) {
         targetDate = String(date);
         job.reschedule("*/10 * * * * *");   // 스케줄러 재시작
+        crawler();  // 즉시 실행하기 위함
     }
 });
 
@@ -143,9 +144,14 @@ async function crawler() {
                 let seatRemainCnt = $(e).find('a').attr('data-seatremaincnt');  // 남은 좌석수
                 let link = "http://www.cgv.co.kr" + $(e).find('a').attr('href'); // 예매하는 페이지 url
 
+                // 예매 준비중이거나 마감 표시
+                if (seatRemainCnt == null) {
+                    seatRemainCnt = $(e).find('span').text();
+                }
+
                 timeTable += ("\n" + startTime.substring(0,2) + ":" + startTime.substring(2,4) + " ~ " + 
                             endTime.substring(0,2) + ":" + endTime.substring(2,4) +
-                            " | 남은 좌석 : " + seatRemainCnt + 
+                            " | 남은 좌석수 : " + seatRemainCnt + 
                             " | [예매](" + link + ")");
             });
 
