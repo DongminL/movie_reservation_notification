@@ -101,13 +101,15 @@ bot.onText(/\/setdate (.+)/, (msg, match) => {
     if (fnisDate(date)) {
         targetDate = String(date);
         job.reschedule("*/10 * * * * *");   // 스케줄러 재시작
-        crawler();  // 즉시 실행하기 위함
+        imaxCrawler();  // 즉시 실행하기 위함
     }
 });
 
 /* 웹 크롤링 */
-async function crawler() {
+async function imaxCrawler() {
     try {
+        let random = (Math.random() * 17) + 3;  // 3 ~ 20 사이의 난수
+
         // 웹 크롤링을 위한 puppeteer 객체 생성
         const browser = await puppeteer.launch({
             headless: "new"
@@ -135,7 +137,9 @@ async function crawler() {
             // uri의 date 값과 상영 날짜의 값이 다르면 종료
             if (playDate !== targetDate) {
                 console.log("IMAX관이 열리지 않았습니다.");
-                return await browser.close();  // puppeteer 브라우저 종료
+
+                await new Promise((page) => setTimeout(page, random * 1000));   // 안들키기 위해 랜덤값만큼 대기
+                return await page.close();  // puppeteer 페이지 종료
             }
 
             // 상영시간표 가져오기
@@ -173,7 +177,7 @@ async function crawler() {
             console.log(movieNm);
             console.log(timeTable);
 
-            // Telegram에 전송
+            // Telegram으로 전송
             sendMsg(playDate.substring(0,4) + "년 " + playDate.substring(4,6) + "월 " +
                     playDate.substring(6,8) + "일\nIMAX관 오픈\n\n" + movieNm + "\n" + timeTable);
 
@@ -181,6 +185,9 @@ async function crawler() {
         }
         else {
             console.log("IMAX관이 열리지 않았습니다.");
+
+            await new Promise((page) => setTimeout(page, random * 1000));   // 안들키기 위해 랜덤값만큼 대기
+            return await page.close();  // puppeteer 페이지 종료
         }
 
         await browser.close();  // puppeteer 브라우저 종료
@@ -191,5 +198,5 @@ async function crawler() {
 
 /* 10초간격으로 웹 크롤링 실행 */
 const job = schedule.scheduleJob("*/10 * * * * *", function () {
-    crawler();
+    imaxCrawler();
 });
