@@ -6,7 +6,7 @@ const telegram = require("node-telegram-bot-api");
 /* Telegram Bot */
 const Token = "6331704920:AAEL5bnlVpBKe5Usx0QXQOSOgeLRFrfaD-Y"; // telegram bot token
 const bot = new telegram(Token, {polling: true});   // telegram bot api 객체 생성
-const ChatId = "6288907835";  // 나의 chat id
+let ChatId = "6288907835";  // 나의 chat id
 
 let flag = false;   // 해당일의 IMAX관 예매 오픈 여부
 let targetDate = today();   // 예매할 날짜
@@ -93,6 +93,7 @@ function sendMsg(msg) {
 
 /* 예매할 날짜 설정 (명령어 : "/setdate yyyymmdd") */
 bot.onText(/\/setdate (.+)/, (msg, match) => {
+    ChatId = msg.chat.id;
     let date = match[1];
     console.log(`변경된 날짜 : ${date}`);
 
@@ -145,14 +146,27 @@ async function crawler() {
                 let link = "http://www.cgv.co.kr" + $(e).find('a').attr('href'); // 예매하는 페이지 url
 
                 // 예매 준비중이거나 마감 표시
-                if (seatRemainCnt == null) {
+                if ($(e).find('a').length < 1) {
+                    startTime = $(e).find('em').text();
                     seatRemainCnt = $(e).find('span').text();
+                    
+                    timeTable += ("\n" + startTime +
+                            " | 남은 좌석수 : " + seatRemainCnt);
                 }
+                else if (seatRemainCnt == null) {
+                    seatRemainCnt = $(e).find('span').text();
 
-                timeTable += ("\n" + startTime.substring(0,2) + ":" + startTime.substring(2,4) + " ~ " + 
+                    timeTable += ("\n" + startTime.substring(0,2) + ":" + startTime.substring(2,4) + " ~ " + 
+                            endTime.substring(0,2) + ":" + endTime.substring(2,4) +
+                            " | " + seatRemainCnt + 
+                            " | [예매](" + link + ")");
+                }
+                else {
+                    timeTable += ("\n" + startTime.substring(0,2) + ":" + startTime.substring(2,4) + " ~ " + 
                             endTime.substring(0,2) + ":" + endTime.substring(2,4) +
                             " | 남은 좌석수 : " + seatRemainCnt + 
                             " | [예매](" + link + ")");
+                }
             });
 
             console.log(`${playDate.substring(0,4)}년 ${playDate.substring(4,6)}월 ${playDate.substring(6,8)}일\nIMAX관 오픈\n`);
