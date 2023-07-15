@@ -105,7 +105,7 @@ bot.onText(/\/setdate (.+)/, (msg, match) => {
     }
 });
 
-/* 메가박스 웹 크롤링 */
+/* 메가박스 Dolby 웹 크롤링 */
 async function dolbyCrawler() {
     try {
         // 웹 크롤링을 위한 puppeteer 객체 생성
