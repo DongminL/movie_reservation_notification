@@ -101,14 +101,16 @@ bot.onText(/\/setdate (.+)/, (msg, match) => {
 
 /* CGV IMAX 웹 크롤링 */
 async function imaxCrawler(targetDate) {
+    // 웹 크롤링을 위한 puppeteer 브라우저 생성
+    const browser = await puppeteer.launch({
+        headless: "new"
+    });
+
     while (true) {  // IMAX관 시간표를 가져올 때까지 반복
         try {
             let random = (Math.random() * 17) + 10;  // 10 ~ 27 사이의 난수
-    
-            // 웹 크롤링을 위한 puppeteer 객체 생성
-            const browser = await puppeteer.launch({
-                headless: "new"
-            });
+
+            // 페이지 생성
             const page = await browser.newPage();
             await page.goto(`http://www.cgv.co.kr/theaters/?areacode=01&theaterCode=0013&date=${targetDate}`);   // CGV 용산아이파크몰점 예매 사이트 접속
     
@@ -134,7 +136,7 @@ async function imaxCrawler(targetDate) {
                     console.log("IMAX관이 열리지 않았습니다.");
     
                     await new Promise((page) => setTimeout(page, random * 1000));   // 안들키기 위해 랜덤값만큼 대기 (ms)
-                    browser.close();  // puppeteer 브라우저 종료
+                    await page.close();  // puppeteer 페이지 종료
                 }
     
                 // 상영시간표 가져오기
@@ -183,7 +185,7 @@ async function imaxCrawler(targetDate) {
                 console.log("IMAX관이 열리지 않았습니다.");
     
                 await new Promise((page) => setTimeout(page, random * 1000));   // 안들키기 위해 랜덤값만큼 대기 (ms)
-                browser.close();  // puppeteer 브라우저 종료
+                await page.close();  // puppeteer 페이지 종료
             }
         } catch (err) {
             console.error(err);
