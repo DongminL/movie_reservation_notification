@@ -1,6 +1,5 @@
 const puppeteer = require('puppeteer');
 const cheerio = require('cheerio');
-const schedule = require('node-schedule');
 const telegram = require("node-telegram-bot-api");
 
 /* Telegram Bot */

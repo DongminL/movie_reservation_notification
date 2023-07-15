@@ -1,6 +1,5 @@
 const puppeteer = require('puppeteer');
 const cheerio = require('cheerio');
-const schedule = require('node-schedule');
 const telegram = require("node-telegram-bot-api");
 
 /* Telegram Bot */
@@ -100,7 +99,6 @@ bot.onText(/\/setdate (.+)/, (msg, match) => {
     // 날짜 형식 확인 후 변경
     if (fnisDate(date)) {
         targetDate = String(date);
-        job.reschedule("*/10 * * * * *");   // 스케줄러 재시작
         imaxCrawler();  // 즉시 실행하기 위함
     }
 });
@@ -177,7 +175,6 @@ async function dolbyCrawler() {
         //     sendMsg(playDate.substring(0,4) + "년 " + playDate.substring(4,6) + "월 " +
         //             playDate.substring(6,8) + "일\nIMAX관 오픈\n\n" + movieNm + "\n" + timeTable);
 
-        //     job.cancel();   // 스케줄러 종료
         // }
         // else {
         //     console.log("IMAX관이 열리지 않았습니다.");
