@@ -118,11 +118,11 @@ async function dolbyCrawler(targetDate) {
         // 영화관 선택
         await page.click('div[class="tab-left-area"] > ul > li > a[title="극장별 선택"]');
         const brch = await page.waitForSelector('#mCSB_4_container > ul.list > li > button[data-brch-no="1351"]');
-        await brch.click();
+        await page.evaluate(elem => elem.click(), brch);
         
         // 날짜 선택
         const date = await page.waitForSelector('#contents > div > div > div.time-schedule.mb30 > div > div.date-list > div.date-area > div > button[date-data="2023.07.17"]');
-        await date.click();
+        await page.evaluate(elem => elem.click(), date);
 
         // html 불러오기까지 대기
         const date_delay = await page.waitForSelector('#contents > div > div > div.time-schedule.mb30 > div > div.date-list > div.date-area > div > button[date-data="2023.07.17"].on');
