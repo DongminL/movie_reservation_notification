@@ -7,10 +7,6 @@ const Token = "6331704920:AAEL5bnlVpBKe5Usx0QXQOSOgeLRFrfaD-Y"; // telegram bot 
 const bot = new telegram(Token, {polling: true});   // telegram bot api 객체 생성
 let ChatId = "6288907835";  // 나의 chat id
 
-let flag = false;   // 해당일의 IMAX관 예매 오픈 여부
-let targetDate = today();   // 예매할 날짜
-
-
 /* 오늘 날짜 (yyyymmdd) */
 function today() {
     const date = new Date();    // Date 객체 생성  
@@ -98,92 +94,59 @@ bot.onText(/\/setdate (.+)/, (msg, match) => {
 
     // 날짜 형식 확인 후 변경
     if (fnisDate(date)) {
-        targetDate = String(date);
-        imaxCrawler();  // 즉시 실행하기 위함
+        let targetDate = String(date);
+        dolbyCrawler(targetDate);  
     }
 });
 
 /* 메가박스 Dolby 웹 크롤링 */
-async function dolbyCrawler() {
+async function dolbyCrawler(targetDate) {
+    // 웹 크롤링을 위한 puppeteer 객체 생성
+    const browser = await puppeteer.launch({
+        headless: "new"
+    });
+
+    const page = await browser.newPage();   // 새 페이지 생성
+    
+    // 브라우저 실행 시 생성되어 있는 탭 닫기
+    const [firstPage] = await browser.pages();
+    await firstPage.close();
+
     try {
-        // 웹 크롤링을 위한 puppeteer 객체 생성
-        const browser = await puppeteer.launch({
-            headless: "new"
-        });
-        const page = await browser.newPage();
         await page.goto(`https://www.megabox.co.kr/booking/timetable`);   // 메가박스 예매 사이트 접속
 
         // 영화관 선택
         await page.click('div[class="tab-left-area"] > ul > li > a[title="극장별 선택"]');
-        const brch = await page.waitForSelector('div[id="mCSB_4_container"] > ul > li > button[data-brch-no="1351"]');
-        await brch.click()
-
-        let name = await page.$$('.theater-tit');
-        console.log(await page.evaluate(el => el.textContent, name[1]))
+        const brch = await page.waitForSelector('#mCSB_4_container > ul.list > li > button[data-brch-no="1351"]');
+        await brch.click();
         
-        // // 해당 날짜에 IMAX관 오픈 정보 가져오기
-        // const imax = $('span.imax');
+        // 날짜 선택
+        const date = await page.waitForSelector('#contents > div > div > div.time-schedule.mb30 > div > div.date-list > div.date-area > div > button[date-data="2023.07.17"]');
+        await date.click();
 
-        // // IMAX관 오픈 여부에 따른 처리
-        // if (imax.length > 0) {
-        //     let timeTable = ""; // 상영 시간표 및 남은 좌석수
-        //     let movieNm = $(imax).parents('.col-times').find('.info-movie > a > strong').text().trim(); // IMAX관에서 상영하는 영화 이름
-        //     let playDate = $(imax).parents('.type-hall').find('.info-timetable > ul > li > a').attr('data-playymd');    // 상영 날짜 (yyyymmdd)
+        // html 불러오기까지 대기
+        const date_delay = await page.waitForSelector('#contents > div > div > div.time-schedule.mb30 > div > div.date-list > div.date-area > div > button[date-data="2023.07.17"].on');
+        const n_d = await page.waitForSelector('div.theater-list');
+        
+        // 스크래핑을 위한 cheerio 객체 생성
+        const content = await page.content();
+        const $ = cheerio.load(content);
 
-        //     // uri의 date 값과 상영 날짜의 값이 다르면 종료
-        //     if (playDate !== targetDate) {
-        //         console.log("IMAX관이 열리지 않았습니다.");
-        //         return await browser.close();  // puppeteer 브라우저 종료
-        //     }
+        const name = $('p.theater-name');
+        console.log(name.length)
+        
+        name.each((i, e) => {
+            if ($(e).text() == "Dolby Cinema") {
+                let movieNm = $(e).parents('.theater-list').find('.theater-tit > p > a').text().trim(); // IMAX관에서 상영하는 영화 이름
+                console.log(movieNm);
+            }
+        })
+        
 
-        //     // 상영시간표 가져오기
-        //     $(imax).parents('.type-hall').find('.info-timetable > ul > li').each((i, e) => {
-        //         let startTime = $(e).find('a').attr('data-playstarttime');  // 상영 시작 시간
-        //         let endTime = $(e).find('a').attr('data-playendtime');  // 상영 종료 시간
-        //         let seatRemainCnt = $(e).find('a').attr('data-seatremaincnt');  // 남은 좌석수
-        //         let link = "http://www.cgv.co.kr" + $(e).find('a').attr('href'); // 예매하는 페이지 url
-
-        //         // 예매 준비중이거나 마감 표시
-        //         if ($(e).find('a').length < 1) {
-        //             startTime = $(e).find('em').text();
-        //             seatRemainCnt = $(e).find('span').text();
-                    
-        //             timeTable += ("\n" + startTime +
-        //                     " | 남은 좌석수 : " + seatRemainCnt);
-        //         }
-        //         else if (seatRemainCnt == null) {
-        //             seatRemainCnt = $(e).find('span').text();
-
-        //             timeTable += ("\n" + startTime.substring(0,2) + ":" + startTime.substring(2,4) + " ~ " + 
-        //                     endTime.substring(0,2) + ":" + endTime.substring(2,4) +
-        //                     " | " + seatRemainCnt + 
-        //                     " | [예매](" + link + ")");
-        //         }
-        //         else {
-        //             timeTable += ("\n" + startTime.substring(0,2) + ":" + startTime.substring(2,4) + " ~ " + 
-        //                     endTime.substring(0,2) + ":" + endTime.substring(2,4) +
-        //                     " | 남은 좌석수 : " + seatRemainCnt + 
-        //                     " | [예매](" + link + ")");
-        //         }
-        //     });
-
-        //     console.log(`${playDate.substring(0,4)}년 ${playDate.substring(4,6)}월 ${playDate.substring(6,8)}일\nIMAX관 오픈\n`);
-        //     console.log(movieNm);
-        //     console.log(timeTable);
-
-        //     // Telegram에 전송
-        //     sendMsg(playDate.substring(0,4) + "년 " + playDate.substring(4,6) + "월 " +
-        //             playDate.substring(6,8) + "일\nIMAX관 오픈\n\n" + movieNm + "\n" + timeTable);
-
-        // }
-        // else {
-        //     console.log("IMAX관이 열리지 않았습니다.");
-        // }
-
-        await browser.close();  // puppeteer 브라우저 종료
     } catch (err) {
         console.error(err);
+        page.close()    // puppeteer 페이지 종료
     }
 }
 
-dolbyCrawler();
+dolbyCrawler(today());
