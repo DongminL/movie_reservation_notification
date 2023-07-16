@@ -107,12 +107,21 @@ async function imaxCrawler(targetDate) {
     });
 
     while (true) {  // IMAX관 시간표를 가져올 때까지 반복
+        // 페이지 생성
+        const page = await browser.newPage();
+
         try {
             let random = (Math.random() * 17) + 10;  // 10 ~ 27 사이의 난수
 
-            // 페이지 생성
-            const page = await browser.newPage();
-            await page.goto(`http://www.cgv.co.kr/theaters/?areacode=01&theaterCode=0013&date=${targetDate}`);   // CGV 용산아이파크몰점 예매 사이트 접속
+            // 탭 옵션
+            const pageOption = {
+                // waitUntil: 적어도 500ms 동안 두 개 이상의 네트워크 연결이 없으면 탐색이 완료된 것으로 간주합니다.
+                waitUntil: 'networkidle2',
+                // timeout: 20초 안에 새 탭의 주소로 이동하지 않으면 에러 발생
+                timeout: 20000
+            };
+
+            await page.goto(`http://www.cgv.co.kr/theaters/?areacode=01&theaterCode=0013&date=${targetDate}`, pageOption);   // CGV 용산아이파크몰점 예매 사이트 접속
     
             // 상영시간표 정보가 담긴 iframe으로 전환
             const ifrmHandle = await page.$('iframe[id="ifrm_movie_time_table"]');
@@ -178,6 +187,7 @@ async function imaxCrawler(targetDate) {
                 sendMsg(playDate.substring(0,4) + "년 " + playDate.substring(4,6) + "월 " +
                         playDate.substring(6,8) + "일\nIMAX관 오픈\n\n" + movieNm + "\n" + timeTable);
     
+                await page.close();  // puppeteer 페이지 종료
                 await browser.close();  // puppeteer 브라우저 종료
                 break;
             }
@@ -189,6 +199,7 @@ async function imaxCrawler(targetDate) {
             }
         } catch (err) {
             console.error(err);
+            await page.close();  // puppeteer 페이지 종료
         }
     }
 }
