@@ -111,7 +111,7 @@ async function imaxCrawler(targetDate) {
         const page = await browser.newPage();
 
         try {
-            let random = (Math.random() * 17) + 10;  // 10 ~ 27 사이의 난수
+            let random = (Math.random() * 17) + 13;  // 13 ~ 30 사이의 난수
 
             // 탭 옵션
             const pageOption = {
