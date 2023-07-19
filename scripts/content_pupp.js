@@ -111,7 +111,7 @@ async function imaxCrawler(targetDate) {
         const page = await browser.newPage();
 
         try {
-            let random = (Math.random() * 15) + 20;  // 20 ~ 35 사이의 난수
+            let random = (Math.random() * 20) + 30;  // 30 ~ 50 사이의 난수
 
             // 탭 옵션
             const pageOption = {
@@ -179,13 +179,13 @@ async function imaxCrawler(targetDate) {
                     }
                 });
     
-                console.log(`${playDate.substring(0,4)}년 ${playDate.substring(4,6)}월 ${playDate.substring(6,8)}일\nIMAX관 오픈\n`);
+                console.log(`${playDate.substring(0,4)}년 ${playDate.substring(4,6)}월 ${playDate.substring(6,8)}일\nIMAX 오픈\n`);
                 console.log(movieNm);
                 console.log(timeTable);
     
                 // Telegram으로 전송
                 sendMsg(playDate.substring(0,4) + "년 " + playDate.substring(4,6) + "월 " +
-                        playDate.substring(6,8) + "일\nIMAX관 오픈\n\n" + movieNm + "\n" + timeTable);
+                        playDate.substring(6,8) + "일\nIMAX 오픈\n\n" + movieNm + "\n" + timeTable);
     
                 await page.close();  // puppeteer 페이지 종료
                 await browser.close();  // puppeteer 브라우저 종료
