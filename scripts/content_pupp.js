@@ -6,6 +6,7 @@ const telegram = require("node-telegram-bot-api");
 const Token = "6331704920:AAEL5bnlVpBKe5Usx0QXQOSOgeLRFrfaD-Y"; // telegram bot token
 const bot = new telegram(Token, {polling: true});   // telegram bot api 객체 생성
 let ChatId = "6288907835";  // 나의 chat id
+let date = today(); // 현재 크롤링하고 있는 날짜
 
 /* 오늘 날짜 (yyyymmdd) */
 function today() {
@@ -89,12 +90,13 @@ function sendMsg(msg) {
 /* 예매할 날짜 설정 (명령어 : "/setdate yyyymmdd") */
 bot.onText(/\/setdate (.+)/, (msg, match) => {
     ChatId = msg.chat.id;
-    let date = match[1];
-    console.log(`변경된 날짜 : ${date}`);
+    let setDate = match[1];
+    console.log(`변경된 날짜 : ${setDate}`);
 
     // 날짜 형식 확인 후 변경
-    if (fnisDate(date)) {
-        let targetDate = String(date);
+    if (fnisDate(setDate)) {
+        let targetDate = String(setDate);
+        date = targetDate;  // 크롤링 날짜 변경
         imaxCrawler(targetDate);  
     }
 });
@@ -109,10 +111,16 @@ async function imaxCrawler(targetDate) {
     while (true) {  // IMAX관 시간표를 가져올 때까지 반복
         // 페이지 생성
         const page = await browser.newPage();
+        let random = (Math.random() * 20) + 30;  // 30 ~ 50 사이의 난수
+
+        // 날짜가 변경되면 이전 함수 종료
+        if (targetDate !== date) {
+            await page.close();  // puppeteer 페이지 종료
+            await browser.close();  // puppeteer 브라우저 종료
+            return;
+        }
 
         try {
-            let random = (Math.random() * 20) + 30;  // 30 ~ 50 사이의 난수
-
             // 탭 옵션
             const pageOption = {
                 // waitUntil: 적어도 500ms 동안 두 개 이상의 네트워크 연결이 없으면 탐색이 완료된 것으로 간주합니다.
@@ -146,6 +154,7 @@ async function imaxCrawler(targetDate) {
     
                     await new Promise((page) => setTimeout(page, random * 1000));   // 안들키기 위해 랜덤값만큼 대기 (ms)
                     await page.close();  // puppeteer 페이지 종료
+                    continue;
                 }
     
                 // 상영시간표 가져오기
@@ -163,12 +172,12 @@ async function imaxCrawler(targetDate) {
                         timeTable += ("\n" + startTime +
                                 " | 남은 좌석수 : " + seatRemainCnt);
                     }
-                    else if (seatRemainCnt == null) {
+                    else if (seatRemainCnt == null || startTime == null) {
+                        startTime = $(e).find('em').text();
                         seatRemainCnt = $(e).find('span').text();
     
-                        timeTable += ("\n" + startTime.substring(0,2) + ":" + startTime.substring(2,4) + " ~ " + 
-                                endTime.substring(0,2) + ":" + endTime.substring(2,4) +
-                                " | " + seatRemainCnt + 
+                        timeTable += ("\n" + startTime +
+                                " | 남은 좌석수 : " + seatRemainCnt +
                                 " | [예매](" + link + ")");
                     }
                     else {
@@ -199,7 +208,9 @@ async function imaxCrawler(targetDate) {
             }
         } catch (err) {
             console.error(err);
+
             await page.close();  // puppeteer 페이지 종료
+            await new Promise((page) => setTimeout(page, random * 1000));   // 안들키기 위해 랜덤값만큼 대기 (ms)
         }
     }
 }
