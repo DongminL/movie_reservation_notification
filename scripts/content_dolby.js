@@ -140,8 +140,14 @@ async function dolbyCrawler(targetDate) {
             // 영화관 선택
             const theater_select = await page.waitForSelector('div[class="tab-left-area"] > ul > li > a[title="극장별 선택"]');
             await page.evaluate(elem => elem.click(), theater_select);
-            const coex = await page.waitForSelector('#mCSB_4_container > ul.list > li > button[data-brch-no="1351"]');  // 코엑스 극장 선택
-            await page.evaluate(elem => elem.click(), coex);
+
+            // const coex = await page.waitForSelector('#mCSB_4_container > ul.list > li > button[data-brch-no="1351"]');  // 코엑스 극장 선택
+            // await page.evaluate(elem => elem.click(), coex);
+
+            const gyeonggi = await page.waitForSelector('#masterBrch > div > div.tab-list-choice > ul > li:nth-child(2) > a[title="경기지점 선택"]');   // 경기 선택
+            await page.evaluate(elem => elem.click(), gyeonggi);
+            const namyang = await page.waitForSelector('#mCSB_5_container > ul.list > li > button[data-brch-no="0019"]');   // 남양주현대아울렛 스페이스원 극장 선택
+            await page.evaluate(elem => elem.click(), namyang);
 
             console.log(targetDate);
 
@@ -154,7 +160,7 @@ async function dolbyCrawler(targetDate) {
 
             // html 불러오기까지 대기
             wait = await page.waitForSelector('div.theater-list');
-            wait = await page.waitForSelector('td[brch-no="1351"]');
+            //wait = await page.waitForSelector('td[brch-no="1351"]');
             wait = await page.waitForSelector(`.theater-time table.time-list-table > tbody > tr > td[play-de="${targetDate}"]`)
 
             // 스크래핑을 위한 cheerio 객체 생성
