@@ -6,7 +6,8 @@ const telegram = require("node-telegram-bot-api");
 const Token = "6331704920:AAEL5bnlVpBKe5Usx0QXQOSOgeLRFrfaD-Y"; // telegram bot token
 const bot = new telegram(Token, {polling: true});   // telegram bot api 객체 생성
 let ChatId = "6288907835";  // 나의 chat id
-let date = today(); // 현재 크롤링하고 있는 날짜
+let date = today(); // 현재 크롤링하고 있는 날짜    (기본값 : 당일)  
+let theater = "남돌비"; // 현재 크롤링하고 있는 극장   (기본값 : 남양주 현대 아울렛 스페이스 원)
 
 /* 오늘 날짜 (yyyymmdd) */
 function today() {
@@ -97,12 +98,26 @@ bot.onText(/\/setdate (.+)/, (msg, match) => {
     if (fnisDate(setDate)) {
         let targetDate = String(setDate);
         date = targetDate;  // 크롤링 날짜 변경
-        dolbyCrawler(targetDate);  
+        dolbyCrawler(date, theater);  
     }
 });
 
+/* 예매할 극장 설정 (명령어 : "/setdate 남돌비 OR 코돌비") */
+bot.onText(/\/settheater (.+)/, (msg, match) => {
+    ChatId = msg.chat.id;
+    let setTheater = match[1];
+
+    let targetTheater = String(setTheater);
+    if (theater !== targetTheater) {
+        theater = targetTheater;  // 크롤링 극장 변경
+        console.log(`변경된 극장 : ${theater}`);
+
+        dolbyCrawler(date, theater);
+    } 
+});
+
 /* 메가박스 Dolby 웹 크롤링 */
-async function dolbyCrawler(targetDate) {
+async function dolbyCrawler(targetDate, targetTheater) {
     // 웹 크롤링을 위한 puppeteer 객체 생성
     const browser = await puppeteer.launch({
         headless: "new",
@@ -126,6 +141,13 @@ async function dolbyCrawler(targetDate) {
             return;
         }
 
+        // 극장이 변경되면 이전 함수 종료
+        if (targetTheater !== theater) {
+            await page.close();  // puppeteer 페이지 종료
+            await browser.close();  // puppeteer 브라우저 종료
+            return;
+        }
+
         try {
             // 탭 옵션
             const pageOption = {
@@ -141,14 +163,18 @@ async function dolbyCrawler(targetDate) {
             const theater_select = await page.waitForSelector('div[class="tab-left-area"] > ul > li > a[title="극장별 선택"]');
             await page.evaluate(elem => elem.click(), theater_select);
 
-            // const coex = await page.waitForSelector('#mCSB_4_container > ul.list > li > button[data-brch-no="1351"]');  // 코엑스 극장 선택
-            // await page.evaluate(elem => elem.click(), coex);
+            if (targetTheater === "남돌비") {
+                const gyeonggi = await page.waitForSelector('#masterBrch > div > div.tab-list-choice > ul > li:nth-child(2) > a[title="경기지점 선택"]');   // 경기 선택
+                await page.evaluate(elem => elem.click(), gyeonggi);
+                const namyang = await page.waitForSelector('#mCSB_5_container > ul.list > li > button[data-brch-no="0019"]');   // 남양주현대아울렛 스페이스원 극장 선택
+                await page.evaluate(elem => elem.click(), namyang);
+            }
+            else if (targetTheater === "코돌비") {
+                const coex = await page.waitForSelector('#mCSB_4_container > ul.list > li > button[data-brch-no="1351"]');  // 코엑스 극장 선택
+                await page.evaluate(elem => elem.click(), coex);    
+            }
 
-            const gyeonggi = await page.waitForSelector('#masterBrch > div > div.tab-list-choice > ul > li:nth-child(2) > a[title="경기지점 선택"]');   // 경기 선택
-            await page.evaluate(elem => elem.click(), gyeonggi);
-            const namyang = await page.waitForSelector('#mCSB_5_container > ul.list > li > button[data-brch-no="0019"]');   // 남양주현대아울렛 스페이스원 극장 선택
-            await page.evaluate(elem => elem.click(), namyang);
-
+            console.log(targetTheater);
             console.log(targetDate);
 
             await page.waitForSelector('#contents > div > div > div.time-schedule.mb30');
@@ -189,16 +215,16 @@ async function dolbyCrawler(targetDate) {
 
                         timeTable += (`${playTime} | 남은 좌석수 : ${seatRemainCnt}\n`);
                     });
-
-                    console.log(`${playDate.substring(0,4)}년 ${playDate.substring(4,6)}월 ${playDate.substring(6,8)}일\nDolby Cinema 오픈\n`);
-                    console.log(timeTable);
                 }
             });
 
             if (dolby) {
                 // Telegram으로 전송
+                console.log(brchNm + "\n" + targetDate.substring(0,4) + "년 " + targetDate.substring(4,6) + "월 " +
+                            targetDate.substring(6,8) + "일\nDolby Cinema 오픈\n" + timeTable);
+
                 sendMsg(brchNm + "\n" + targetDate.substring(0,4) + "년 " + targetDate.substring(4,6) + "월 " +
-                targetDate.substring(6,8) + "일\nDolby Cinema 오픈\n" + timeTable);
+                        targetDate.substring(6,8) + "일\nDolby Cinema 오픈\n" + timeTable);
         
                 await page.close();  // puppeteer 페이지 종료
                 await browser.close();  // puppeteer 브라우저 종료
@@ -220,4 +246,4 @@ async function dolbyCrawler(targetDate) {
     }
 }
 
-dolbyCrawler(today());
+dolbyCrawler(date, theater);
