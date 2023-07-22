@@ -140,8 +140,8 @@ async function dolbyCrawler(targetDate) {
             // 영화관 선택
             const theater_select = await page.waitForSelector('div[class="tab-left-area"] > ul > li > a[title="극장별 선택"]');
             await page.evaluate(elem => elem.click(), theater_select);
-            const brch = await page.waitForSelector('#mCSB_4_container > ul.list > li > button[data-brch-no="1351"]');
-            await page.evaluate(elem => elem.click(), brch);
+            const coex = await page.waitForSelector('#mCSB_4_container > ul.list > li > button[data-brch-no="1351"]');  // 코엑스 극장 선택
+            await page.evaluate(elem => elem.click(), coex);
 
             console.log(targetDate);
 
