@@ -1,6 +1,7 @@
 const puppeteer = require('puppeteer');
 const cheerio = require('cheerio');
 const telegram = require("node-telegram-bot-api");
+const imax = require("./content_pupp.js");
 
 /* Telegram Bot */
 const Token = "6331704920:AAEL5bnlVpBKe5Usx0QXQOSOgeLRFrfaD-Y"; // telegram bot token
@@ -98,7 +99,13 @@ bot.onText(/\/setdate (.+)/, (msg, match) => {
     if (fnisDate(setDate)) {
         let targetDate = String(setDate);
         date = targetDate;  // 크롤링 날짜 변경
-        dolbyCrawler(date, theater);  
+
+        if (theater === "남돌비" || theater === "코돌비") {
+            dolbyCrawler(date, theater);
+        }
+        else if (theater === "용아맥") {
+            imax.imaxCrawler(date, theater);
+        }
     }
 });
 
@@ -108,11 +115,17 @@ bot.onText(/\/settheater (.+)/, (msg, match) => {
     let setTheater = match[1];
 
     let targetTheater = String(setTheater);
-    if (theater !== targetTheater) {
+    if (theater !== targetTheater && (targetTheater === "남돌비" || targetTheater === "코돌비")) {
         theater = targetTheater;  // 크롤링 극장 변경
         console.log(`변경된 극장 : ${theater}`);
 
         dolbyCrawler(date, theater);
+    }
+    else if (theater !== targetTheater && targetTheater === "용아맥") {
+        theater = targetTheater;  // 크롤링 극장 변경
+        console.log(`변경된 극장 : ${theater}`);
+
+        imax.imaxCrawler(date, theater);
     } 
 });
 
@@ -121,17 +134,12 @@ async function dolbyCrawler(targetDate, targetTheater) {
     // 웹 크롤링을 위한 puppeteer 객체 생성
     const browser = await puppeteer.launch({
         headless: "new",
-        args: ["--window-size=1920,1080"]
     });
 
     let dolby = false;  // Dolby Cinema 유무
     
-    while (true) {
-        const page = await browser.newPage();   // 새 페이지 생성
-        page.setViewport({
-            width: 1920,
-            height: 1080,
-        });
+    while (true) {  // Dolby Cinema관 시간표를 가져올 때까지 반복
+        const page = await browser.newPage();   // 페이지 생성
         let random = (Math.random() * 20) + 30;  // 30 ~ 50 사이의 난수
         
         // 날짜가 변경되면 이전 함수 종료
@@ -224,7 +232,7 @@ async function dolbyCrawler(targetDate, targetTheater) {
                             targetDate.substring(6,8) + "일\nDolby Cinema 오픈\n" + timeTable);
 
                 sendMsg(brchNm + "\n" + targetDate.substring(0,4) + "년 " + targetDate.substring(4,6) + "월 " +
-                        targetDate.substring(6,8) + "일\nDolby Cinema 오픈\n" + timeTable);
+                    targetDate.substring(6,8) + "일\n\nDolby Cinema 오픈\n" + timeTable);
         
                 await page.close();  // puppeteer 페이지 종료
                 await browser.close();  // puppeteer 브라우저 종료

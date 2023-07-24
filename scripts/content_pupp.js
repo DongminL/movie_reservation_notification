@@ -1,12 +1,14 @@
 const puppeteer = require('puppeteer');
 const cheerio = require('cheerio');
 const telegram = require("node-telegram-bot-api");
+const dolby = require("./content_dolby.js");
 
 /* Telegram Bot */
 const Token = "6331704920:AAEL5bnlVpBKe5Usx0QXQOSOgeLRFrfaD-Y"; // telegram bot token
 const bot = new telegram(Token, {polling: true});   // telegram bot api 객체 생성
 let ChatId = "6288907835";  // 나의 chat id
 let date = today(); // 현재 크롤링하고 있는 날짜
+let theater = "용아맥"; // 현재 크롤링하고 있는 극장   (기본값 : 용산 아이파크점)
 
 /* 오늘 날짜 (yyyymmdd) */
 function today() {
@@ -97,12 +99,34 @@ bot.onText(/\/setdate (.+)/, (msg, match) => {
     if (fnisDate(setDate)) {
         let targetDate = String(setDate);
         date = targetDate;  // 크롤링 날짜 변경
-        imaxCrawler(targetDate);  
+        dolby.date = date;
+        imaxCrawler(targetDate, theater);  
+    }
+});
+
+/* 예매할 극장 설정 (명령어 : "/setdate 남돌비 OR 코돌비") */
+bot.onText(/\/settheater (.+)/, (msg, match) => {
+    ChatId = msg.chat.id;
+    let setTheater = match[1];
+
+    let targetTheater = String(setTheater);
+    if (theater !== targetTheater && targetTheater === "용아맥") {
+        theater = targetTheater;  // 크롤링 극장 변경
+        console.log(`변경된 극장 : ${theater}`);
+
+        imaxCrawler(date, theater);
+    }
+    else if (theater !== targetTheater && (targetTheater === "남돌비" || targetTheater === "코돌비")) {
+        theater = targetTheater;  // 크롤링 극장 변경
+        dolby.theater = theater;
+        console.log(`변경된 극장 : ${theater}`);
+        
+        dolby.dolbyCrawler(date, theater);
     }
 });
 
 /* CGV IMAX 웹 크롤링 */
-async function imaxCrawler(targetDate) {
+async function imaxCrawler(targetDate, targetTheater) {
     // 웹 크롤링을 위한 puppeteer 브라우저 생성
     const browser = await puppeteer.launch({
         headless: "new"
@@ -115,6 +139,13 @@ async function imaxCrawler(targetDate) {
 
         // 날짜가 변경되면 이전 함수 종료
         if (targetDate !== date) {
+            await page.close();  // puppeteer 페이지 종료
+            await browser.close();  // puppeteer 브라우저 종료
+            return;
+        }
+
+        // 극장이 변경되면 이전 함수 종료
+        if (targetTheater !== theater) {
             await page.close();  // puppeteer 페이지 종료
             await browser.close();  // puppeteer 브라우저 종료
             return;
@@ -215,4 +246,4 @@ async function imaxCrawler(targetDate) {
     }
 }
 
-imaxCrawler(today());
+imaxCrawler(date, theater);
