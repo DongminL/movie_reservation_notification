@@ -140,6 +140,7 @@ async function dolbyCrawler(targetDate, targetTheater) {
     
     while (true) {  // Dolby Cinema관 시간표를 가져올 때까지 반복
         const page = await browser.newPage();   // 페이지 생성
+        
         let random = (Math.random() * 20) + 30;  // 30 ~ 50 사이의 난수
         
         // 날짜가 변경되면 이전 함수 종료

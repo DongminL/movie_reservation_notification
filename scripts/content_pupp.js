@@ -1,7 +1,6 @@
 const puppeteer = require('puppeteer');
 const cheerio = require('cheerio');
 const telegram = require("node-telegram-bot-api");
-const dolby = require("./content_dolby.js");
 
 /* Telegram Bot */
 const Token = "6331704920:AAEL5bnlVpBKe5Usx0QXQOSOgeLRFrfaD-Y"; // telegram bot token
@@ -99,8 +98,13 @@ bot.onText(/\/setdate (.+)/, (msg, match) => {
     if (fnisDate(setDate)) {
         let targetDate = String(setDate);
         date = targetDate;  // 크롤링 날짜 변경
-        dolby.date = date;
-        imaxCrawler(targetDate, theater);  
+        
+        if (theater === "용아맥") {
+            imaxCrawler(date, theater);
+        }
+        else if (theater === "남돌비" || theater === "코돌비") {
+            dolbyCrawler(date, theater);
+        }
     }
 });
 
@@ -118,12 +122,137 @@ bot.onText(/\/settheater (.+)/, (msg, match) => {
     }
     else if (theater !== targetTheater && (targetTheater === "남돌비" || targetTheater === "코돌비")) {
         theater = targetTheater;  // 크롤링 극장 변경
-        dolby.theater = theater;
         console.log(`변경된 극장 : ${theater}`);
         
-        dolby.dolbyCrawler(date, theater);
+        dolbyCrawler(date, theater);
     }
 });
+
+/* 메가박스 Dolby 웹 크롤링 */
+async function dolbyCrawler(targetDate, targetTheater) {
+    // 웹 크롤링을 위한 puppeteer 객체 생성
+    const browser = await puppeteer.launch({
+        headless: "new",
+    });
+
+    let dolby = false;  // Dolby Cinema 유무
+    
+    while (true) {  // Dolby Cinema관 시간표를 가져올 때까지 반복
+        const page = await browser.newPage();   // 페이지 생성
+        
+        let random = (Math.random() * 20) + 30;  // 30 ~ 50 사이의 난수
+        
+        // 날짜가 변경되면 이전 함수 종료
+        if (targetDate !== date) {
+            await page.close();  // puppeteer 페이지 종료
+            await browser.close();  // puppeteer 브라우저 종료
+            return;
+        }
+
+        // 극장이 변경되면 이전 함수 종료
+        if (targetTheater !== theater) {
+            await page.close();  // puppeteer 페이지 종료
+            await browser.close();  // puppeteer 브라우저 종료
+            return;
+        }
+
+        try {
+            // 탭 옵션
+            const pageOption = {
+                // waitUntil: 적어도 500ms 동안 두 개 이상의 네트워크 연결이 없으면 탐색이 완료된 것으로 간주합니다.
+                waitUntil: 'networkidle2',
+                // timeout: 20초 안에 새 탭의 주소로 이동하지 않으면 에러 발생
+                timeout: 20000
+            };
+
+            await page.goto(`https://www.megabox.co.kr/booking/timetable`, pageOption);   // 메가박스 예매 사이트 접속
+
+            // 영화관 선택
+            const theater_select = await page.waitForSelector('div[class="tab-left-area"] > ul > li > a[title="극장별 선택"]');
+            await page.evaluate(elem => elem.click(), theater_select);
+
+            if (targetTheater === "남돌비") {
+                const gyeonggi = await page.waitForSelector('#masterBrch > div > div.tab-list-choice > ul > li:nth-child(2) > a[title="경기지점 선택"]');   // 경기 선택
+                await page.evaluate(elem => elem.click(), gyeonggi);
+                const namyang = await page.waitForSelector('#mCSB_5_container > ul.list > li > button[data-brch-no="0019"]');   // 남양주현대아울렛 스페이스원 극장 선택
+                await page.evaluate(elem => elem.click(), namyang);
+            }
+            else if (targetTheater === "코돌비") {
+                const coex = await page.waitForSelector('#mCSB_4_container > ul.list > li > button[data-brch-no="1351"]');  // 코엑스 극장 선택
+                await page.evaluate(elem => elem.click(), coex);    
+            }
+
+            console.log(targetTheater);
+            console.log(targetDate);
+
+            await page.waitForSelector('#contents > div > div > div.time-schedule.mb30');
+        
+            // 날짜 선택
+            const date = await page.waitForSelector(`#contents > div > div > div.time-schedule.mb30 > div > div.date-list > div.date-area > div > button[date-data="${targetDate.substring(0,4)}.${targetDate.substring(4,6)}.${targetDate.substring(6,8)}"]`);
+            await page.evaluate(elem => elem.click(), date);
+            console.log(`button[date-data="${targetDate.substring(0,4)}.${targetDate.substring(4,6)}.${targetDate.substring(6,8)}"]`);
+
+            // html 불러오기까지 대기
+            wait = await page.waitForSelector('div.theater-list');
+            //wait = await page.waitForSelector('td[brch-no="1351"]');
+            wait = await page.waitForSelector(`.theater-time table.time-list-table > tbody > tr > td[play-de="${targetDate}"]`)
+
+            // 스크래핑을 위한 cheerio 객체 생성
+            content = await page.content();
+            $ = cheerio.load(content);
+
+            let brchNm = $('#contents > div > div > h3:nth-child(5)').text();
+            console.log(brchNm);
+
+            const theaterNm = $('p.theater-name');
+            console.log(theaterNm.length);
+        
+            let timeTable = ""; // Dolby Cinema 상영 시간표 
+            theaterNm.each((i, e) => {
+                if ($(e).text() == "Dolby Cinema") {
+                    let movieNm = $(e).parents('.theater-list').find('.theater-tit > p > a').text().trim(); // Dolby Cinema관에서 상영하는 영화 이름
+                    let play = $(e).parents('.theater-type-box').find('.theater-time table.time-list-table > tbody > tr > td'); // 상영 시간 정보
+                    let playDate = $(play).attr('play-de'); // 상영 날짜
+                    dolby = true;
+
+                    timeTable += ("\n" + movieNm + "\n\n");
+
+                    play.each((i, e) => {
+                        let playTime = $(e).find('div.td-ab div.play-time > p').first().text().trim();  // 상영 시간
+                        let seatRemainCnt = $(e).find('div.td-ab > div.txt-center > a > p.chair').text().trim()   // 남은 좌석수
+
+                        timeTable += (`${playTime} | 남은 좌석수 : ${seatRemainCnt}\n`);
+                    });
+                }
+            });
+
+            if (dolby) {
+                // Telegram으로 전송
+                console.log(brchNm + "\n" + targetDate.substring(0,4) + "년 " + targetDate.substring(4,6) + "월 " +
+                            targetDate.substring(6,8) + "일\nDolby Cinema 오픈\n" + timeTable);
+
+                sendMsg(brchNm + "\n" + targetDate.substring(0,4) + "년 " + targetDate.substring(4,6) + "월 " +
+                    targetDate.substring(6,8) + "일\n\nDolby Cinema 오픈\n" + timeTable);
+        
+                await page.close();  // puppeteer 페이지 종료
+                await browser.close();  // puppeteer 브라우저 종료
+                break;
+            }
+            else {
+                console.log("Dolby Cinema가 열리지 않았습니다.");
+                
+                await new Promise((page) => setTimeout(page, random * 1000));   // 안들키기 위해 랜덤값만큼 대기 (ms)
+                await page.close();  // puppeteer 페이지 종료
+            }
+        } catch (err) {
+            console.error(err);
+            console.log("Dolby Cinema가 열리지 않았습니다.");
+
+            await page.close();    // puppeteer 페이지 종료
+            await new Promise((page) => setTimeout(page, random * 1000));   // 안들키기 위해 랜덤값만큼 대기 (ms)
+        }
+    }
+}
 
 /* CGV IMAX 웹 크롤링 */
 async function imaxCrawler(targetDate, targetTheater) {
@@ -133,8 +262,8 @@ async function imaxCrawler(targetDate, targetTheater) {
     });
 
     while (true) {  // IMAX관 시간표를 가져올 때까지 반복
-        // 페이지 생성
-        const page = await browser.newPage();
+        const page = await browser.newPage();   // 페이지 생성
+        
         let random = (Math.random() * 20) + 30;  // 30 ~ 50 사이의 난수
 
         // 날짜가 변경되면 이전 함수 종료
