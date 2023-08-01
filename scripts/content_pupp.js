@@ -132,7 +132,7 @@ bot.onText(/\/settheater (.+)/, (msg, match) => {
 async function dolbyCrawler(targetDate, targetTheater) {
     // 웹 크롤링을 위한 puppeteer 객체 생성
     const browser = await puppeteer.launch({
-        headless: "new",
+        headless: "new"
     });
 
     let dolby = false;  // Dolby Cinema 유무
@@ -176,30 +176,116 @@ async function dolbyCrawler(targetDate, targetTheater) {
                 await page.evaluate(elem => elem.click(), gyeonggi);
                 const namyang = await page.waitForSelector('#mCSB_5_container > ul.list > li > button[data-brch-no="0019"]');   // 남양주현대아울렛 스페이스원 극장 선택
                 await page.evaluate(elem => elem.click(), namyang);
+                await new Promise((page) => setTimeout(page, 100));    // 0.1초 대기
+                await page.evaluate(elem => elem.click(), namyang);
             }
             else if (targetTheater === "코돌비") {
                 const coex = await page.waitForSelector('#mCSB_4_container > ul.list > li > button[data-brch-no="1351"]');  // 코엑스 극장 선택
+                await page.evaluate(elem => elem.click(), coex);
+                await new Promise((page) => setTimeout(page, 100));    // 0.1초 대기
                 await page.evaluate(elem => elem.click(), coex);    
             }
 
-            console.log(targetTheater);
-            console.log(targetDate);
-
             await page.waitForSelector('#contents > div > div > div.time-schedule.mb30');
+            await new Promise((page) => setTimeout(page, 300));    // 0.3초 대기
         
             // 날짜 선택
-            const date = await page.waitForSelector(`#contents > div > div > div.time-schedule.mb30 > div > div.date-list > div.date-area > div > button[date-data="${targetDate.substring(0,4)}.${targetDate.substring(4,6)}.${targetDate.substring(6,8)}"]`);
-            await page.evaluate(elem => elem.click(), date);
-            console.log(`button[date-data="${targetDate.substring(0,4)}.${targetDate.substring(4,6)}.${targetDate.substring(6,8)}"]`);
+            const calender = await page.waitForSelector('#contents > div > div > div.time-schedule.mb30 > div > div.bg-line > button[title="달력보기"]');
+            await page.evaluate(elem => elem.click(), calender);    // 캘린더 클릭
+            const month = await page.waitForSelector('#ui-datepicker-div > div.ui-datepicker-header.ui-widget-header.ui-helper-clearfix.ui-corner-all > div > span.ui-datepicker-month');
+            const monthText = await page.evaluate(elem => {
+                return elem.textContent;
+            }, month);  // 몇 월인지 가져오기
+
+            // 월 맞추기
+            if (targetDate.charAt(4) === '0') {
+                let next = 0;
+                if (monthText.charAt(1) === "월") {
+                    next = parseInt(targetDate.charAt(5) - monthText.charAt(0));
+                }
+                else {
+                    next = parseInt(targetDate.charAt(5) - monthText.substring(0, 2));
+                }
+
+                // 다음 월로 이동
+                if (next > 0) {
+                    for (let i = 0; i < next; i++) {
+                        let nextBtn = await page.waitForSelector('#ui-datepicker-div > div.ui-datepicker-header.ui-widget-header.ui-helper-clearfix.ui-corner-all > a.ui-datepicker-next.ui-corner-all');
+                        await page.evaluate(elem => elem.click(), nextBtn);
+                    }
+                }
+
+                // 이전 월로 이동
+                else if (next < 0) {
+                    for (let i = 0; i > next; i--) {
+                        let prevBtn = await page.waitForSelector('#ui-datepicker-div > div.ui-datepicker-header.ui-widget-header.ui-helper-clearfix.ui-corner-all > a.ui-datepicker-prev.ui-corner-all.ui-state-disabled')
+                        await page.evaluate(elem => elem.click(), prevBtn);
+                    }
+                }
+            }
+            else {
+                let next = 0;
+                if (monthText.charAt(1) === "월") {
+                    next = parseInt(targetDate.substring(4, 6) - monthText.charAt(0));
+                }
+                else {
+                    next = parseInt(targetDate.substring(4, 6) - monthText.substring(0, 2));
+                }
+
+                // 다음 월로 이동
+                if (next > 0) {
+                    for (let i = 0; i < next; i++) {
+                        let nextBtn = await page.waitForSelector('#ui-datepicker-div > div.ui-datepicker-header.ui-widget-header.ui-helper-clearfix.ui-corner-all > a.ui-datepicker-next.ui-corner-all');
+                        await page.evaluate(elem => elem.click(), nextBtn);
+                    }
+                }
+
+                // 이전 월로 이동
+                else if (next < 0) {
+                    for (let i = 0; i > next; i--) {
+                        let prevBtn = await page.waitForSelector('#ui-datepicker-div > div.ui-datepicker-header.ui-widget-header.ui-helper-clearfix.ui-corner-all > a.ui-datepicker-prev.ui-corner-all.ui-state-disabled')
+                        await page.evaluate(elem => elem.click(), prevBtn);
+                    }
+                }
+            }
+
+            // 일 선택
+            let targetMonth = 0;
+            if (targetDate.charAt(4) === "0") {
+                targetMonth = parseInt(targetDate.charAt(5));
+            }
+            else {
+                targetMonth = parseInt(targetDate.substring(4, 6));
+            }
+            let targetDay = "";
+            if (targetDate.charAt(6) === "0") {
+                targetDay = targetDate.charAt(7);
+            }
+            else {
+                targetDay = targetDate.substring(6, 8);
+            }
+
+            await page.waitForSelector(`#ui-datepicker-div > table > tbody td`);
+            const days = await page.$$(`#ui-datepicker-div > table > tbody td`);
+            let dayText = "";
+            for (let i = 0; i < days.length; i++) {
+                dayText = await page.evaluate(elem => elem.textContent, days[i]);  // 며칠인지 가져오기
+
+                // 해당 날짜 클릭
+                if (targetDay == dayText) {
+                    await page.evaluate(elem => elem.click(), days[i]);
+                    break;
+                }
+            }
 
             // html 불러오기까지 대기
-            wait = await page.waitForSelector('div.theater-list');
-            //wait = await page.waitForSelector('td[brch-no="1351"]');
-            wait = await page.waitForSelector(`.theater-time table.time-list-table > tbody > tr > td[play-de="${targetDate}"]`)
+            await page.waitForSelector(`#contents > div > div > div.time-schedule.mb30 > div > div.date-list > div.date-area > div > button[date-data="${targetDate.substring(0,4)}.${targetDate.substring(4,6)}.${targetDate.substring(6,8)}"]`);
+            await page.waitForSelector('div.theater-list');
+            await page.waitForSelector(`.theater-time table.time-list-table > tbody > tr > td[play-de="${targetDate}"]`)
 
             // 스크래핑을 위한 cheerio 객체 생성
-            content = await page.content();
-            $ = cheerio.load(content);
+            let content = await page.content();
+            let $ = cheerio.load(content);
 
             let brchNm = $('#contents > div > div > h3:nth-child(5)').text();
             console.log(brchNm);
@@ -220,6 +306,12 @@ async function dolbyCrawler(targetDate, targetTheater) {
                     play.each((i, e) => {
                         let playTime = $(e).find('div.td-ab div.play-time > p').first().text().trim();  // 상영 시간
                         let seatRemainCnt = $(e).find('div.td-ab > div.txt-center > a > p.chair').text().trim()   // 남은 좌석수
+
+                        // 매진 될 때
+                        if ($(play).attr('class') === "end-time") {
+                            playTime = $(e).find('p.time').text().trim();   // 상영 시간
+                            seatRemainCnt = $(e).find('p.chair').text().trim(); // 남은 좌석수
+                        }
 
                         timeTable += (`${playTime} | 남은 좌석수 : ${seatRemainCnt}\n`);
                     });
@@ -248,7 +340,7 @@ async function dolbyCrawler(targetDate, targetTheater) {
             console.error(err);
             console.log("Dolby Cinema가 열리지 않았습니다.");
 
-            await page.close();    // puppeteer 페이지 종료
+            //await page.close();    // puppeteer 페이지 종료
             await new Promise((page) => setTimeout(page, random * 1000));   // 안들키기 위해 랜덤값만큼 대기 (ms)
         }
     }
