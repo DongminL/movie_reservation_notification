@@ -295,7 +295,7 @@ async function dolbyCrawler(targetDate, targetTheater) {
         
             let timeTable = ""; // Dolby Cinema 상영 시간표 
             theaterNm.each((i, e) => {
-                if ($(e).text() == "Dolby Cinema") {
+                if ($(e).text() == "Dolby Cinema [Laser]") {
                     let movieNm = $(e).parents('.theater-list').find('.theater-tit > p > a').text().trim(); // Dolby Cinema관에서 상영하는 영화 이름
                     let play = $(e).parents('.theater-type-box').find('.theater-time table.time-list-table > tbody > tr > td'); // 상영 시간 정보
                     let playDate = $(play).attr('play-de'); // 상영 날짜
