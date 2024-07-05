@@ -35,13 +35,13 @@ function fnisDate(vDate) {
     
     // 아무것도 입력하지 않은 경우
 	if (fnToNull(vValue_Num) == "") {
-		sendMsg("날짜를 입력 해 주세요.");
+		sendMsg("날짜를 입력해 주세요.");
 		return false;
 	}
 
 	//8자리가 아닌 경우 false
 	if (vValue_Num.length != 8) {
-		sendMsg("날짜를 yyyymmdd 형식으로 입력 해 주세요.");
+		sendMsg("날짜를 yyyymmdd 형식으로 입력해 주세요.");
 		return false;
 	}
 	
@@ -60,22 +60,22 @@ function fnisDate(vDate) {
 
 	//yyyymmdd 체크
 	if (dtMonth < 1 || dtMonth > 12) {
-		sendMsg("존재하지 않은 월을 입력하셨습니다. 다시 한번 확인 해주세요");
+		sendMsg("존재하지 않는 달을 입력하셨습니다.\n다시 확인 해주세요.");
 		return false;
 	}
 	else if (dtDay < 1 || dtDay > 31) {
-		sendMsg("존재하지 않은 일을 입력하셨습니다. 다시 한번 확인 해주세요");
+		sendMsg("존재하지 않는 날을 입력하셨습니다.\n다시 확인 해주세요.");
 		return false;
 	}
 	else if ((dtMonth == 4 || dtMonth == 6 || dtMonth == 9 || dtMonth == 11) && dtDay == 31) {
-		sendMsg("존재하지 않은 일을 입력하셨습니다. 다시 한번 확인 해주세요");
+		sendMsg("존재하지 않는 날을 입력하셨습니다.\n다시 확인 해주세요.");
 		return false;
 	}
 	else if (dtMonth == 2) {
 		let isleap = (dtYear % 4 == 0 && (dtYear % 100 != 0 || dtYear % 400 == 0));
 
 		if (dtDay > 29 || (dtDay == 29 && !isleap)) {
-			sendMsg("존재하지 않은 일을 입력하셨습니다. 다시 한번 확인 해주세요");
+			sendMsg("존재하지 않는 날을 입력하셨습니다.\n다시 확인 해주세요.");
 			return false;
 		}
 	}
