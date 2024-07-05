@@ -131,6 +131,8 @@ bot.onText(/\/settheater (.+)/, (msg, match) => {
         console.log(`변경된 극장 : ${theater}`);
         
         dolbyCrawler(date, theater);
+    } else {
+        sendMsg("잘못된 극장 설정입니다.\n다시 입력해 주세요.");
     }
 });
 
