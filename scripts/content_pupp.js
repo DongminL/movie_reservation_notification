@@ -83,6 +83,12 @@ function fnisDate(vDate) {
 	return true;
 }
 
+// 명령어 목록
+bot.setMyCommands([
+    { command: '/setdate', description: '날짜 설정 (YYYYMMDD)' },
+    { command: '/settheater', description: '극장 설정 (용아맥, 남돌비, 코돌비)' },
+]);
+
 /* Telegram Bot에 메세지 보내기 */
 function sendMsg(msg) {
     bot.sendMessage(ChatId, msg, {parse_mode: 'Markdown'});
