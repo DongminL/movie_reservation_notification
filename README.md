@@ -1,6 +1,6 @@
 # 영화 예매 오픈 알리미
-**사용한 라이브러리** : Puppeteer(동적 크롤링), Cheerio(웹 스크랩핑), node-telegram-bot-api(텔레그램 봇 API) <br>
-**개발환경** : Node.js, Telegram
+**기술 스택** : JavaScript, Node.js
+**개발 도구** : Puppeteer(동적 크롤링), Cheerio(웹 스크랩핑), node-telegram-bot-api(텔레그램 봇 API) <br>
 
 <image src="https://github.com/DongminL/movie_reservation_notification/assets/108854865/dd9f4c92-f63a-4658-8ec3-db996cf69b7d" width="50%" height="50%">
 
