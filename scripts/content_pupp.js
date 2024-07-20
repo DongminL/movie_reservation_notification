@@ -1,11 +1,16 @@
 const puppeteer = require('puppeteer');
 const cheerio = require('cheerio');
 const telegram = require("node-telegram-bot-api");
+const yaml = require('js-yaml');
+const fs = require('fs');
+
+// YAML 파일 읽기
+const config = yaml.load(fs.readFileSync('./config.yml', 'utf-8'));
 
 /* Telegram Bot */
-const Token = "6331704920:AAEL5bnlVpBKe5Usx0QXQOSOgeLRFrfaD-Y"; // telegram bot token
-const bot = new telegram(Token, {polling: true});   // telegram bot api 객체 생성
-let ChatId = "6288907835";  // 나의 chat id
+const token = config.telegram.token; // telegram bot token
+const bot = new telegram(token, {polling: true});   // telegram bot api 객체 생성
+const chatId = config.telegram.chatId;  // 나의 chat id
 let date = today(); // 현재 크롤링하고 있는 날짜
 let theater = "용아맥"; // 현재 크롤링하고 있는 극장   (기본값 : 용산 아이파크점)
 
@@ -91,12 +96,12 @@ bot.setMyCommands([
 
 /* Telegram Bot에 메세지 보내기 */
 function sendMsg(msg) {
-    bot.sendMessage(ChatId, msg, {parse_mode: 'Markdown'});
+    bot.sendMessage(chatId, msg, {parse_mode: 'Markdown'});
 }
 
 /* 예매할 날짜 설정 (명령어 : "/setdate yyyymmdd") */
 bot.onText(/\/setdate (.+)/, (msg, match) => {
-    ChatId = msg.chat.id;
+    chatId = msg.chat.id;
     let setDate = match[1];
     console.log(`변경된 날짜 : ${setDate}`);
 
@@ -116,7 +121,7 @@ bot.onText(/\/setdate (.+)/, (msg, match) => {
 
 /* 예매할 극장 설정 (명령어 : "/setdate 남돌비 OR 코돌비") */
 bot.onText(/\/settheater (.+)/, (msg, match) => {
-    ChatId = msg.chat.id;
+    chatId = msg.chat.id;
     let setTheater = match[1];
 
     let targetTheater = String(setTheater);
@@ -173,7 +178,7 @@ async function dolbyCrawler(targetDate, targetTheater) {
                 timeout: 20000
             };
 
-            await page.goto(`https://www.megabox.co.kr/booking/timetable`, pageOption);   // 메가박스 예매 사이트 접속
+            await page.goto(config.urls.dolby, pageOption);   // 메가박스 예매 사이트 접속
 
             // 영화관 선택
             const theater_select = await page.waitForSelector('div[class="tab-left-area"] > ul > li > a[title="극장별 선택"]');
@@ -389,7 +394,7 @@ async function imaxCrawler(targetDate, targetTheater) {
                 timeout: 20000
             };
 
-            await page.goto(`http://www.cgv.co.kr/theaters/?areacode=01&theaterCode=0013&date=${targetDate}`, pageOption);   // CGV 용산아이파크몰점 예매 사이트 접속
+            await page.goto(config.urls.imax + targetDate, pageOption);   // CGV 용산아이파크몰점 예매 사이트 접속
     
             // 상영시간표 정보가 담긴 iframe으로 전환
             const ifrmHandle = await page.$('iframe[id="ifrm_movie_time_table"]');
