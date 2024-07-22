@@ -5,7 +5,7 @@ const yaml = require('js-yaml');
 const fs = require('fs');
 
 // YAML 파일 읽기
-const config = yaml.load(fs.readFileSync('./config.yml', 'utf-8'));
+const config = yaml.load(fs.readFileSync('./config.yaml', 'utf-8'));
 
 /* Telegram Bot */
 const token = config.telegram.token; // telegram bot token
@@ -464,8 +464,7 @@ async function imaxCrawler(targetDate, targetTheater) {
                 await page.close();  // puppeteer 페이지 종료
                 await browser.close();  // puppeteer 브라우저 종료
                 break;
-            }
-            else {
+            } else {
                 console.log("IMAX관이 열리지 않았습니다.");
     
                 await new Promise((page) => setTimeout(page, random * 1000));   // 안들키기 위해 랜덤값만큼 대기 (ms)
