@@ -20,7 +20,8 @@ class Crawler {
         this.date = date;
 
         this.stopCrawler();
-        this.crawl();
+        
+        return this.crawl();
     }
 
     /* 극장 변경 */
@@ -59,8 +60,9 @@ class Crawler {
         new Promise((page) => setTimeout(page, random * 1000));   // 안들키기 위해 랜덤값만큼 대기 (ms)
     }
 
-    /* 극장 시간표 웹 크롤링 */
+    /* 상영관 시간표 웹 크롤링 */
     async crawl() {
+        throw new Error("구현 필수");
     }
 }
 
