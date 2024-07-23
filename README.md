@@ -2,6 +2,10 @@
 **기술 스택** : JavaScript, Node.js
 **개발 도구** : Puppeteer(동적 크롤링), Cheerio(웹 스크랩핑), node-telegram-bot-api(텔레그램 봇 API) <br>
 
+# 프로젝트 시연 영상
+[시연 영상](https://youtu.be/ruk1ORTjW_U?si=6njZhObKgYP7AuIS)
+
+# 첫 실행 시 알림
 <image src="https://github.com/DongminL/movie_reservation_notification/assets/108854865/dd9f4c92-f63a-4658-8ec3-db996cf69b7d" width="50%" height="50%">
 
 # 텔레그램 명령어
