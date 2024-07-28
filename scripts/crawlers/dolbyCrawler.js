@@ -171,7 +171,7 @@ class DolbyCrawler extends Crawler {
 
                         timeTable += (brchNm + "\n" + playDate.substring(0, 4) + "년 " + playDate.substring(4, 6) + "월 " +
                                     playDate.substring(6, 8) + "일\nDolby Cinema 오픈\n");  // 영화관 지점 및 날짜 추가
-                        timeTable += ("\n" + movieNm + "\n\n"); // 영화 이름 추가
+                        timeTable += ("\n" + movieNm + "\n\n"); // 영화 제목 추가
 
                         play.each((i, e) => {
                             let playTime = $(e).find('div.td-ab div.play-time > p').first().text().trim();  // 상영 시간

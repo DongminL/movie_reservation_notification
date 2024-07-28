@@ -1,5 +1,4 @@
 const Crawler = require('./crawler');
-const TelegramBot = require('../telegram');
 const puppeteer = require('puppeteer');
 const cheerio = require('cheerio');
 
@@ -56,6 +55,9 @@ class ImaxCrawler extends Crawler {
                         continue;
                     }
 
+                    timeTable += (`${playDate.substring(0, 4)}년 ${playDate.substring(4, 6)}월 ${playDate.substring(6, 8)}일\nIMAX 오픈\n\n`); // 상영 날짜 추가
+                    timeTable += (movieNm + "\n");  // 영화 제목 추가
+
                     // 상영시간표 가져오기
                     $(imax).parents('.type-hall').find('.info-timetable > ul > li')
                     .each((i, e) => {
@@ -88,16 +90,13 @@ class ImaxCrawler extends Crawler {
                         }
                     });
 
-                    console.log(`${playDate.substring(0, 4)}년 ${playDate.substring(4, 6)}월 ${playDate.substring(6, 8)}일\nIMAX 오픈\n`);
-                    console.log(movieNm);
                     console.log(timeTable);
 
                     await page.close();  // puppeteer 페이지 종료
                     await this.browser.close();  // puppeteer 브라우저 종료
 
                     // 크롤링한 시간표 반환
-                    return playDate.substring(0, 4) + "년 " + playDate.substring(4, 6) + "월 " +
-                        playDate.substring(6, 8) + "일\nIMAX 오픈\n\n" + movieNm + "\n" + timeTable;
+                    return timeTable;
                 } else {
                     console.log("IMAX관이 열리지 않았습니다.");
 
