@@ -1,5 +1,6 @@
 const telegram = require("node-telegram-bot-api");
 const ImaxCrawler = require('./crawlers/imaxCrawler');    // 크롤러 모듈 불러오기
+const DolbyCrawler = require('./crawlers/dolbyCrawler');    // 크롤러 모듈 불러오기
 const path = require('path');
 const yaml = require('js-yaml');
 const fs = require('fs');
@@ -30,8 +31,9 @@ class TelegramBot {
     setupBot() {
         // 명령어 목록
         this.bot.setMyCommands([
+            { command: '/start', description: '알리미 시작' },
             { command: '/setdate', description: '날짜 설정 (YYYYMMDD)' },
-            { command: '/settheater', description: '극장 설정 (용아맥, 남돌비, 코돌비)' },
+            { command: '/settheater', description: '극장 설정 (용아맥, 남돌비, 코돌비)' }
         ]);
 
         // 크롤링 시작
