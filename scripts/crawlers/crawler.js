@@ -20,7 +20,9 @@ class Crawler {
         this.date = date;
 
         this.stopCrawler();
-        
+
+        // 크롤링 재시작
+        this.isStop = false;
         return this.crawl();
     }
 

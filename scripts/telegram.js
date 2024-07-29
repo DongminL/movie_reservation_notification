@@ -42,6 +42,23 @@ class TelegramBot {
 
             this.sendMsg(result);
         });
+
+        /* 예매할 날짜 설정 (명령어 : "/setdate yyyymmdd") */
+        this.bot.onText(/\/setdate (.+)/, async (msg, match) => {
+            let setDate = match[1];
+
+            // 날짜 형식 확인 후 변경
+            if (this.fnisDate(setDate)) {
+                this.date = setDate;  // 크롤링 날짜 변경
+
+                
+                console.log(`변경된 날짜 : ${this.crawler.date}`);
+
+                const result = await this.crawler.changeDate(this.date);
+
+                this.sendMsg(result);
+            }
+        });
     }
 
     /* 변경할 극장 설정 */
