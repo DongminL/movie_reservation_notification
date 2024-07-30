@@ -50,7 +50,7 @@ class TelegramBot {
             let setDate = match[1]; // 입력값 가져오기
 
             // 날짜 형식 확인 후 변경
-            if (this.fnisDate(setDate)) {
+            if (this.isValidDate(setDate)) {
                 if (this.crawler.changeDate(setDate)) {
                     this.date = setDate;  // 크롤링 날짜 변경
                     console.log(`변경된 날짜 : ${setDate}`);
@@ -75,26 +75,28 @@ class TelegramBot {
             let setTheater = match[1];  // 입력값 가져오기
 
             // 입력된 극장 확인 후 변경
-            if (this.crawler.changeTheater(setTheater)) {
-                this.theater = setTheater;  // 크롤링 극장 변경
-
-                if (setTheater === "용아맥") {
-                    console.log(`변경된 극장 : ${setTheater}`);
-
-                    this.crawler = new ImaxCrawler(this.date, setTheater);
-
-                    this.sendMsg(`변경된 극장 : ${setTheater}\n/start 명령으로 알림을 받아보세요!`);
-                } else if (setTheater === "남돌비" || setTheater === "코돌비") {
-                    console.log(`변경된 극장 : ${setTheater}`);
-
-                    this.crawler = new DolbyCrawler(this.date, setTheater);
-
-                    this.sendMsg(`변경된 극장 : ${setTheater}\n/start 명령으로 알림을 받아보세요!`);
+            if (this.isValidTheater(setTheater)) {
+                if (this.crawler.changeTheater(setTheater)) {
+                    this.theater = setTheater;  // 크롤링 극장 변경
+    
+                    if (setTheater === "용아맥") {
+                        console.log(`변경된 극장 : ${setTheater}`);
+    
+                        this.crawler = new ImaxCrawler(this.date, setTheater);
+    
+                        this.sendMsg(`변경된 극장 : ${setTheater}\n/start 명령으로 알림을 받아보세요!`);
+                    } else if (setTheater === "남돌비" || setTheater === "코돌비") {
+                        console.log(`변경된 극장 : ${setTheater}`);
+    
+                        this.crawler = new DolbyCrawler(this.date, setTheater);
+    
+                        this.sendMsg(`변경된 극장 : ${setTheater}\n/start 명령으로 알림을 받아보세요!`);
+                    }
                 } else {
-                    this.sendMsg("잘못된 극장 설정입니다.\n다시 입력해 주세요.");
+                    this.sendMsg("이미 설정된 극장입니다.");
                 }
             } else {
-                this.sendMsg("이미 설정된 극장입니다.");
+                this.sendMsg("잘못된 극장 설정입니다.\n다시 입력해 주세요.");
             }
         });
     }
@@ -110,8 +112,8 @@ class TelegramBot {
     }
 
     /* 날짜 유효성 체크 (윤달 포함) */
-    fnisDate(vDate) {
-        let vValue_Num = vDate.replace(/[^0-9]/g, ""); //숫자를 제외한 나머지는 예외처리 합니다.
+    isValidDate(date) {
+        let vValue_Num = date.replace(/[^0-9]/g, ""); //숫자를 제외한 나머지는 예외처리 합니다.
 
         // 아무것도 입력하지 않은 경우
         if (vValue_Num == "") {
@@ -158,6 +160,11 @@ class TelegramBot {
         }
 
         return true;
+    }
+
+    /* 극장 유효성 체크 */
+    isValidTheater(theater) {
+        return ["용아맥", "남돌비", "코돌비"].includes(theater);
     }
 }
 
