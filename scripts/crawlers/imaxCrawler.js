@@ -50,8 +50,8 @@ class ImaxCrawler extends Crawler {
                     if (playDate !== this.date) {
                         console.log("IMAX관이 열리지 않았습니다.");
 
-                        this.trick();   // 차단 회피
-                        page.close();
+                        await this.trick();   // 차단 회피
+                        await page.close();
                         continue;
                     }
 
@@ -100,14 +100,14 @@ class ImaxCrawler extends Crawler {
                 } else {
                     console.log("IMAX관이 열리지 않았습니다.");
 
-                    this.trick();   // 차단 회피
+                    await this.trick();   // 차단 회피
                     await page.close(); // 페이지 종료
                 }
             } catch (err) {
                 console.error(err);
 
                 await page.close(); // 페이지 종료
-                this.trick();   // 차단 회피
+                await this.trick();   // 차단 회피
             }
         }
     }

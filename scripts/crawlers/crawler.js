@@ -42,7 +42,7 @@ class Crawler {
     /* 크롤러 중단 */
     stopCrawler() {
         this.isStop = true;
-        
+
         if (this.browser != null) {
             this.browser.close();
         }
@@ -59,9 +59,9 @@ class Crawler {
     }
 
     /* 크롤링을 안 들키기 위해 랜덤 값만큼 대기 (ms) */
-    trick() {
+    async trick() {
         let random = (Math.random() * 20) + 30;  // 30 ~ 50 사이의 난수
-        new Promise((page) => setTimeout(page, random * 1000));   // 안들키기 위해 랜덤값만큼 대기 (ms)
+        await new Promise((page) => setTimeout(page, random * 1000));   // 안들키기 위해 랜덤값만큼 대기 (ms)
     }
 
     /* 상영관 시간표 웹 크롤링 */

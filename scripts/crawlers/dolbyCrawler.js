@@ -18,7 +18,7 @@ class DolbyCrawler extends Crawler {
 
         let dolby = false;  // Dolby Cinema 유무
 
-        while (true) {  // Dolby Cinema관 시간표를 가져올 때까지 반복
+        while (!this.isStop) {  // Dolby Cinema관 시간표를 가져올 때까지 반복
             const page = await this.browser.newPage();   // 페이지 생성
 
             try {
@@ -201,7 +201,7 @@ class DolbyCrawler extends Crawler {
                 else {
                     console.log("Dolby Cinema가 열리지 않았습니다.");
 
-                    this.trick();   // 차단 회피
+                    await this.trick();   // 차단 회피
                     await page.close();  // puppeteer 페이지 종료
                 }
             } catch (err) {
@@ -209,7 +209,7 @@ class DolbyCrawler extends Crawler {
                 console.log("Dolby Cinema가 열리지 않았습니다.");
 
                 await page.close();    // puppeteer 페이지 종료
-                this.trick();   // 차단 회피
+                await this.trick();   // 차단 회피
             }
         }
     }
