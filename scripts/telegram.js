@@ -40,6 +40,9 @@ class TelegramBot {
 
         // 크롤링 시작
         this.bot.onText(/\/start/, async (msg, match) => {
+            const formattedDate = `${this.date.substring(0, 4)}년 ${this.date.substring(4, 6)}월 ${this.date.substring(6, 8)}`;
+            this.sendMsg(`${this.theater}의 ${formattedDate}일자 상영 정보를 가져오는 중입니다...\n(1분 이상 지연되면 아직 상영 정보가 오픈되지 않은 것입니다!)`);
+
             const result = await this.crawler.crawl();
 
             this.sendMsg(result);
