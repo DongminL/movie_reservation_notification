@@ -1,6 +1,6 @@
 const telegram = require("node-telegram-bot-api");
-const ImaxCrawler = require('./crawlers/imaxCrawler');    // 크롤러 모듈 불러오기
-const DolbyCrawler = require('./crawlers/dolbyCrawler');    // 크롤러 모듈 불러오기
+const ImaxCrawler = require('./crawlers/imaxCrawler');
+const DolbyCrawler = require('./crawlers/dolbyCrawler');
 const path = require('path');
 const yaml = require('js-yaml');
 const fs = require('fs');
@@ -50,28 +50,41 @@ class TelegramBot {
             // 날짜 형식 확인 후 변경
             if (this.fnisDate(setDate)) {
                 this.date = setDate;  // 크롤링 날짜 변경
-                console.log(`변경된 날짜 : ${this.crawler.date}`);
+                console.log(`변경된 날짜 : ${setDate}`);
 
-                const result = await this.crawler.changeDate(this.date);
+                const result = await this.crawler.changeDate(setDate);
 
                 this.sendMsg(result);
             }
         });
-    }
 
-    /* 변경할 극장 설정 */
-    setTheater(theater) {
-        if (["용아맥", "남돌비", "코돌비"].includes(theater)) {
-            if (!this.crawler.isTargetTheater(theater)) {
-                this.theater = theater;
-                this.crawler.stopCrawler();
+        /* 예매할 극장 설정 (명령어 : "/settheaer 용아맥 OR 남돌비 OR 코돌비") */
+        this.bot.onText(/\/settheater (.+)/, async (msg, match) => {
+            let setTheater = match[1];  // 입력값 가져오기
+
+            // 입력된 극장 확인 후 변경
+            if (this.crawler.changeTheater(setTheater)) {
+                this.theater = setTheater;  // 크롤링 극장 변경
+                
+                if (setTheater === "용아맥") {
+                    console.log(`변경된 극장 : ${setTheater}`);
+    
+                    this.crawler = new ImaxCrawler(this.date, setTheater);
+
+                    this.sendMsg(`변경된 극장 : ${setTheater}\n/start 명령으로 알림을 받아보세요!`);
+                } else if (setTheater === "남돌비" || setTheater === "코돌비") {
+                    console.log(`변경된 극장 : ${setTheater}`);
+    
+                    this.crawler = new DolbyCrawler(this.date, setTheater);
+
+                    this.sendMsg(`변경된 극장 : ${setTheater}\n/start 명령으로 알림을 받아보세요!`);
+                } else {
+                    this.sendMsg("잘못된 극장 설정입니다.\n다시 입력해 주세요.");
+                }
             } else {
-                return;
+                this.sendMsg("이미 설정된 극장입니다.");
             }
-        } else {
-            this.sendMsg("잘못된 극장 설정입니다.\n다시 입력해 주세요.");
-            console.log(`잘못된 극장 설정: ${theater}`);
-        }
+        });
     }
 
     /* 당일 날짜 */
