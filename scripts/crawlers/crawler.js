@@ -16,14 +16,16 @@ class Crawler {
     }
 
     /* 날짜 변경 */
-    changeDate(date) {
-        this.date = date;
+    changeDate(targetDate) {
+        if (!this.isTargetDate(targetDate)) {
+            this.date = targetDate;
 
-        this.stopCrawler();
+            this.stopCrawler();
 
-        // 크롤링 재시작
-        this.isStop = false;
-        return this.crawl();
+            return true;
+        }
+
+        return false;
     }
 
     /* 극장 변경 */
@@ -42,15 +44,12 @@ class Crawler {
     /* 크롤러 중단 */
     stopCrawler() {
         this.isStop = true;
-
-        if (this.browser != null) {
-            this.browser.close();
-        }
+        console.log("크롤러 중지");
     }
 
-    /* 크롤링 중인 극장명 가져오기 */
-    getTheater() {
-        return this.theater;
+    // 현재 설정된 날짜와 수정하려는 날짜 비교
+    isTargetDate(targetDate) {
+        return targetDate === this.date;
     }
 
     // 현재 설정된 극장과 수정하려는 극장 비교

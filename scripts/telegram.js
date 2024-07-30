@@ -24,7 +24,9 @@ class TelegramBot {
 
     /* 메시지 전송 */
     async sendMsg(msg) {
-        await this.bot.sendMessage(this.chatId, msg, { parse_mode: 'Markdown' });
+        if (msg != null && msg !== "") {
+            await this.bot.sendMessage(this.chatId, msg, { parse_mode: 'Markdown' });
+        }
     }
 
     /* Bot 기능 설정 */
@@ -49,12 +51,22 @@ class TelegramBot {
 
             // 날짜 형식 확인 후 변경
             if (this.fnisDate(setDate)) {
-                this.date = setDate;  // 크롤링 날짜 변경
-                console.log(`변경된 날짜 : ${setDate}`);
+                if (this.crawler.changeDate(setDate)) {
+                    this.date = setDate;  // 크롤링 날짜 변경
+                    console.log(`변경된 날짜 : ${setDate}`);
 
-                const result = await this.crawler.changeDate(setDate);
+                    if (this.theater === "용아맥") {
+                        this.crawler = new ImaxCrawler(setDate, this.theater);
 
-                this.sendMsg(result);
+                        this.sendMsg(`변경된 날짜 : ${setDate}\n/start 명령으로 알림을 받아보세요!`);
+                    } else {
+                        this.crawler = new DolbyCrawler(setDate, this.theater);
+
+                        this.sendMsg(`변경된 날짜 : ${setDate}\n/start 명령으로 알림을 받아보세요!`);
+                    }
+                } else {
+                    this.sendMsg("이미 설정된 날짜입니다.");
+                }
             }
         });
 
@@ -65,16 +77,16 @@ class TelegramBot {
             // 입력된 극장 확인 후 변경
             if (this.crawler.changeTheater(setTheater)) {
                 this.theater = setTheater;  // 크롤링 극장 변경
-                
+
                 if (setTheater === "용아맥") {
                     console.log(`변경된 극장 : ${setTheater}`);
-    
+
                     this.crawler = new ImaxCrawler(this.date, setTheater);
 
                     this.sendMsg(`변경된 극장 : ${setTheater}\n/start 명령으로 알림을 받아보세요!`);
                 } else if (setTheater === "남돌비" || setTheater === "코돌비") {
                     console.log(`변경된 극장 : ${setTheater}`);
-    
+
                     this.crawler = new DolbyCrawler(this.date, setTheater);
 
                     this.sendMsg(`변경된 극장 : ${setTheater}\n/start 명령으로 알림을 받아보세요!`);
