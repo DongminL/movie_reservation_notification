@@ -212,6 +212,8 @@ class DolbyCrawler extends Crawler {
                 await this.trick();   // 차단 회피
             }
         }
+        
+        await this.browser.close();
     }
 }
 
