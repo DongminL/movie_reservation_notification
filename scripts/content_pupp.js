@@ -119,7 +119,7 @@ bot.onText(/\/setdate (.+)/, (msg, match) => {
     }
 });
 
-/* 예매할 극장 설정 (명령어 : "/setdate 남돌비 OR 코돌비") */
+/* 예매할 극장 설정 (명령어 : "/settheaer 용아맥 OR 남돌비 OR 코돌비") */
 bot.onText(/\/settheater (.+)/, (msg, match) => {
     chatId = msg.chat.id;
     let setTheater = match[1];
