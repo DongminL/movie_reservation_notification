@@ -23,9 +23,9 @@ class TelegramBot {
     }
 
     /* 메시지 전송 */
-    async sendMsg(msg) {
+    sendMsg(msg) {
         if (msg != null && msg !== "") {
-            await this.bot.sendMessage(this.chatId, msg, { parse_mode: 'Markdown' });
+            this.bot.sendMessage(this.chatId, msg, { parse_mode: 'Markdown' });
         }
     }
 

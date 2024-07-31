@@ -111,7 +111,7 @@ class ImaxCrawler extends Crawler {
             }
         }
 
-        await this.browser.close();
+        this.browser.close();
     }
 }
 
