@@ -1,6 +1,6 @@
-const Crawler = require('./crawler');
-const puppeteer = require('puppeteer');
-const cheerio = require('cheerio');
+import Crawler from './crawler.js';
+import puppeteer from 'puppeteer';
+import cheerio from 'cheerio';
 
 
 class DolbyCrawler extends Crawler {
@@ -217,4 +217,4 @@ class DolbyCrawler extends Crawler {
     }
 }
 
-module.exports = DolbyCrawler;
+export default DolbyCrawler;

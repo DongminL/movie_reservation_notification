@@ -1,9 +1,13 @@
-const telegram = require("node-telegram-bot-api");
-const ImaxCrawler = require('./crawlers/imaxCrawler');
-const DolbyCrawler = require('./crawlers/dolbyCrawler');
-const path = require('path');
-const yaml = require('js-yaml');
-const fs = require('fs');
+import telegram from 'node-telegram-bot-api';
+import ImaxCrawler from './crawlers/imaxCrawler.js';
+import DolbyCrawler from './crawlers/dolbyCrawler.js';
+import path from 'path';
+import yaml from 'js-yaml';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 class TelegramBot {
 
@@ -171,4 +175,4 @@ class TelegramBot {
     }
 }
 
-module.exports = TelegramBot;
+export default TelegramBot;

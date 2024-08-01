@@ -1,4 +1,4 @@
-const TelegramBot = require('./telegram');
+import TelegramBot from "./telegram.js";
 
 const bot = new TelegramBot();
 bot.setupBot();

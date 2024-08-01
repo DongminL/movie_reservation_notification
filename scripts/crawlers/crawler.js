@@ -1,6 +1,10 @@
-const path = require('path');
-const yaml = require('js-yaml');
-const fs = require('fs');
+import path from 'path';
+import yaml from 'js-yaml';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 class Crawler {
 
@@ -69,4 +73,4 @@ class Crawler {
     }
 }
 
-module.exports = Crawler;
+export default Crawler;

@@ -1,6 +1,6 @@
-const Crawler = require('./crawler');
-const puppeteer = require('puppeteer');
-const cheerio = require('cheerio');
+import Crawler from './crawler.js';
+import puppeteer from 'puppeteer';
+import cheerio from 'cheerio';
 
 
 class ImaxCrawler extends Crawler {
@@ -115,4 +115,4 @@ class ImaxCrawler extends Crawler {
     }
 }
 
-module.exports = ImaxCrawler;
+export default ImaxCrawler;

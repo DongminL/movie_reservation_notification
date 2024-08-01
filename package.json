@@ -14,7 +14,11 @@
     "cheerio": "^1.0.0-rc.12",
     "js-yaml": "^4.1.0",
     "node-telegram-bot-api": "^0.61.0",
-    "puppeteer": "^20.8.0"
+    "puppeteer": "^20.8.0",
+    "typescript": "^5.5.4"
   },
-  "type": "commonjs"
+  "type": "module",
+  "devDependencies": {
+    "@types/node": "^22.0.0"
+  }
 }
