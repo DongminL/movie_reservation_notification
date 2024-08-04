@@ -2,18 +2,19 @@ import { Browser } from 'puppeteer';
 import {config, CrawlConfig} from '../config';
 
 class Crawler {
-    protected readonly config: CrawlConfig;
-    protected date: string;
-    protected theater: string;
-    protected browser: Browser | null;
-    protected isStop: boolean;
+    
+    protected readonly config: CrawlConfig; // YAML 파일 읽어오는 객체
+    protected date: string; // 날짜
+    protected theater: string;  // 극장
+    protected browser: Browser | null;  // puppeteer의 browser
+    protected isStop: boolean;  // 크롤링 멈추는 여부
 
     constructor(date: string, theater: string) {
         this.config = config;
-        this.date = date;   // 날짜
-        this.theater = theater; // 극장
-        this.browser = null;    // puppeteer의 browser
-        this.isStop = false;  // 크롤링 멈추는 여부
+        this.date = date;  
+        this.theater = theater; 
+        this.browser = null;    
+        this.isStop = false;  
     }
 
     /* 날짜 변경 */
