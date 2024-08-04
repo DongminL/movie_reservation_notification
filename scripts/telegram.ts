@@ -6,6 +6,7 @@ import { config } from './config';
 
 
 class TelegramBot {
+
     private readonly token: string;
     private readonly chatId: string;
     private bot: telegram;
@@ -109,11 +110,11 @@ class TelegramBot {
     }
 
     /* 당일 날짜 */
-    today() {
-        const date = new Date();    // Date 객체 생성  
-        let year = String(date.getFullYear());  // 년도 (yyyy)
-        let month = String("0" + (date.getMonth() + 1)).slice(-2);  // 두 자리수의 월 (mm)
-        let day = String("0" + date.getDate()).slice(-2);   // 두 자리수의 일 (dd)
+    today(): string {
+        const date: Date = new Date();    // Date 객체 생성  
+        let year: string = String(date.getFullYear());  // 년도 (yyyy)
+        let month: string = String("0" + (date.getMonth() + 1)).slice(-2);  // 두 자리수의 월 (mm)
+        let day: string = String("0" + date.getDate()).slice(-2);   // 두 자리수의 일 (dd)
 
         return year + month + day;  // yyyyymmdd 형태로 반환
     }

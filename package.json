@@ -4,8 +4,7 @@
   "description": "",
   "main": "scripts/main.js",
   "scripts": {
-    "start": "node ./build/main.js",
-    "start:dev": "node -r ts-node/register scripts/main.ts"
+    "start": "ts-node -r tsconfig-paths/register scripts/main.ts"
   },
   "keywords": [],
   "author": "",

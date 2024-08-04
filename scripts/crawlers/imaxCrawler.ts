@@ -34,7 +34,7 @@ class ImaxCrawler extends Crawler {
 
                 // 스크래핑을 위한 cheerio 객체 생성
                 const content: string | undefined = await ifrm?.content();
-                const $: cheerio.Root = Cheerio.load(content?? '');
+                const $: cheerio.Root = Cheerio.load(content ?? '');
 
                 // 해당 날짜에 IMAX관 오픈 정보 가져오기
                 const imax: cheerio.Cheerio = $('span.imax');

@@ -28,10 +28,11 @@
     "module": "ES2020",                                /* Specify what module code is generated. */
     "rootDir": "./scripts",                                  /* Specify the root folder within your source files. */
     "moduleResolution": "node",                     /* Specify how TypeScript looks up a file from a given module specifier. */
-    "baseUrl": "./scripts",                                  /* Specify the base directory to resolve non-relative module names. */
-    "paths": {
-      "@crawlers/*" : ["crawlers/*"]
-    },                                      /* Specify a set of entries that re-map imports to additional lookup locations. */
+    // "baseUrl": "scripts",                                  /* Specify the base directory to resolve non-relative module names. */
+    // "paths": {
+    //   "@crawlers/*" : ["crawlers/*.ts"]
+    //   // "@scripts/*" : ["*"]
+    // },                                      /* Specify a set of entries that re-map imports to additional lookup locations. */
     // "rootDirs": [],                                   /* Allow multiple folders to be treated as one when resolving modules. */
     // "typeRoots": [],                                  /* Specify multiple folders that act like './node_modules/@types'. */
     // "types": [],                                      /* Specify type package names to be included without being referenced in a source file. */
@@ -46,8 +47,8 @@
     // "noResolve": true,                                /* Disallow 'import's, 'require's or '<reference>'s from expanding the number of files TypeScript should add to a project. */
 
     /* JavaScript Support */
-    "allowJs": true,                                  /* Allow JavaScript files to be a part of your program. Use the 'checkJS' option to get errors from these files. */
-    //"checkJs": true,                                  /* Enable error reporting in type-checked JavaScript files. */
+    // "allowJs": true,                                  /* Allow JavaScript files to be a part of your program. Use the 'checkJS' option to get errors from these files. */
+    // "checkJs": true,                                  /* Enable error reporting in type-checked JavaScript files. */
     // "maxNodeModuleJsDepth": 1,                        /* Specify the maximum folder depth used for checking JavaScript files from 'node_modules'. Only applicable with 'allowJs'. */
 
     /* Emit */
@@ -111,6 +112,6 @@
     "esm": true,	/* ESM (ECMAScript Module) 형식 허용 */
     "experimentalSpecifierResolution": "node"  /* https://github.com/TypeStrong/ts-node/issues/422 */
   },
-  "include": ["scripts/**/*.ts", "scripts/crawlers/*.ts"], // scripts 디렉토리에 있는 모든 .ts 파일 컴파일
+  "include": ["scripts/**/*.ts"], // scripts 디렉토리에 있는 모든 .ts 파일 컴파일
   "exclude": ["node_modules"] // 컴파일 제외 대상
 }
