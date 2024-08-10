@@ -18,10 +18,10 @@ interface CrawlConfig {
 }
 
 /* 현재 모듈의 파일 경로를 가져옵니다. */
-const __filename = fileURLToPath(import.meta.url);
+const __filename: string = fileURLToPath(import.meta.url);
 
 /* 파일 경로를 이용해 디렉토리 경로를 가져옵니다. */
-const __dirname = dirname(__filename);
+const __dirname: string = dirname(__filename);
 
 /* 현재 파일의 디렉토리를 기준으로 config.yaml 경로 설정 */
 const configPath: string = join(__dirname, '../config.yaml');

@@ -7,20 +7,20 @@ import { config } from './config';
 
 class TelegramBot {
 
-    private readonly token: string;
-    private readonly chatId: string;
-    private bot: telegram;
-    private date: string;
-    private theater: string;
-    private crawler: Crawler;
+    private readonly token: string; // Telegram Bot의 Token 값
+    private readonly chatId: string;    // 알림 받을 텔레그램 채팅방의 ID 값
+    private bot: telegram;  // telegram bot api 객체 
+    private date: string;   // 현재 크롤링하고 있는 날짜 (Default: 당일)
+    private theater: string;    // 현재 크롤링하고 있는 극장   (Default : 용산 아이파크점)
+    private crawler: Crawler;   // 크롤링 객체 
 
     constructor() {
-        this.token = config.telegram.token; // Telegram Bot의 Token 값
-        this.chatId = config.telegram.chatId;  // 알림 받을 텔레그램 채팅방의 ID 값
-        this.bot = new telegram(this.token, { polling: true }); // telegram bot api 객체 생성
-        this.date = this.today();   // 현재 크롤링하고 있는 날짜 (Default: 당일)
-        this.theater = "용아맥";    // 현재 크롤링하고 있는 극장   (Default : 용산 아이파크점)
-        this.crawler = new ImaxCrawler(this.date, this.theater); // 크롤링 객체 생성
+        this.token = config.telegram.token; 
+        this.chatId = config.telegram.chatId;  
+        this.bot = new telegram(this.token, { polling: true }); 
+        this.date = this.today();   
+        this.theater = "용아맥";    
+        this.crawler = new ImaxCrawler(this.date, this.theater); 
     }
 
     /* 메시지 전송 */
