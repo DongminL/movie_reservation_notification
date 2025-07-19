@@ -31,6 +31,7 @@ class ImaxCrawler extends Crawler {
 
                 await page.goto(this.config.urls.imax, pageOption);   // CGV 극장별 예매 사이트 접속
                 
+                // 크롤링할 극장
                 const targetTheater: string = this.theater === "용아맥" ? "용산아이파크몰" : "";
 
                 // 영화관 선택
@@ -47,38 +48,79 @@ class ImaxCrawler extends Crawler {
                         continue;
                     }
 
-                    const text: string|undefined = await page.evaluate(e => e.textContent?.trim(), p);
-                    if (text?.includes(targetTheater)) {
+                    // 설정한 극장을 찾았으면 클릭
+                    const theaterName: string = await page.evaluate(e => e.textContent?.trim() || '', p);
+                    if (theaterName?.includes(targetTheater)) {
                         await button.click();
-                        console.log("용산아이파크몰 선택");
                         break;
                     }
                 }
 
-                // 상영시간표 정보가 담긴 iframe으로 전환
-                const ifrmHandle: ElementHandle<HTMLIFrameElement> | null = await page.$('iframe[id="ifrm_movie_time_table"]');
-                const ifrm: Frame | null | undefined = await ifrmHandle?.contentFrame();
-
                 // 스크래핑을 위한 cheerio 객체 생성
-                const content: string | undefined = await ifrm?.content();
-                const $: cheerio.Root = Cheerio.load(content ?? '');
+                const content: string | undefined = await page.content();
+                const $: cheerio.Root = Cheerio.load(content);
 
-                // 해당 날짜에 IMAX관 오픈 정보 가져오기
-                const imax: cheerio.Cheerio = $('span.imax');
+                // 해당 날짜와 상영관의 시간표
+                await page.waitForSelector('ul.screenInfoTimes_scheduleWrap__sXjoc');  // 시간표 렌더링 대기
+                const timetable = await page.$$('div[class="screenInfoTimes_startTimeItem__JW8_2"]');
+                
+                const imaxTimetable: Map<string, any[]> = new Map<string, any[]>();
+                for (const item of timetable) {
+                    const screenType: string = await item.$eval(
+                        'button.screenInfoTimes_infoWrap__dcYhr > span.screenInfoTimes_seatWrap__7ww9A > span:nth-child(2)',
+                        e => e.textContent?.trim() || ''
+                    );
+
+                    if (screenType !== 'IMAX관') {
+                        continue;
+                    } 
+
+                    const movie: string = await item.$eval(
+                        'button.screenInfoTimes_infoWrap__dcYhr > span.screenInfoTimes_title__tnsJz > span',
+                        e => e.textContent?.trim() || ''
+                    );
+
+                    const seatInfo: string = await item.$eval(
+                        'button.screenInfoTimes_infoWrap__dcYhr > span.screenInfoTimes_seatWrap__7ww9A > span:nth-child(1)',
+                        e => e.textContent?.trim() || ''
+                    );
+
+                    const startTime: string = await item.$eval(
+                        'div.screenInfoTimes_timeWrap__rv8jI > p.screenInfoTimes_startTime__dtHP0',
+                        e => e.textContent?.trim() || ''
+                    );
+
+                    const endTime: string = await item.$eval(
+                        'div.screenInfoTimes_timeWrap__rv8jI > p.screenInfoTimes_endTime__RNcSo',
+                        e => e.textContent?.trim().substring(1) || ''
+                    );
+
+                    // 영화별로 상영 시간 추가
+                    if (!imaxTimetable.has(movie)) {
+                        imaxTimetable.set(movie, []);
+                    }
+                    const list: any[]|undefined = imaxTimetable.get(movie);
+                    list?.push();
+
+                    console.log('영화:', movie);
+                    console.log('시작 시간:', startTime);
+                    console.log('종료 시간:', endTime);
+                    console.log('좌석수:', seatInfo);
+                }
 
                 // IMAX관 오픈 여부에 따른 처리
-                if (imax.length > 0) {
-                    let timeTable: string = ""; // 상영 시간표 및 남은 좌석수
+                if (timetable.length > 0) {
+                    let result: string = ""; // 상영 시간표 및 남은 좌석수
                     
 
 
-                    console.log(timeTable);
+                    console.log(result);
 
                     await page.close();  // puppeteer 페이지 종료
                     await this.browser.close();  // puppeteer 브라우저 종료
 
                     // 크롤링한 시간표 반환
-                    return timeTable;
+                    return result;
                 } else {
                     console.log("IMAX관이 열리지 않았습니다.");
 
