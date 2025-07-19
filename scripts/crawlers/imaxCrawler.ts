@@ -11,7 +11,10 @@ class ImaxCrawler extends Crawler {
     async crawl(): Promise<string> {
         // 웹 크롤링을 위한 puppeteer 브라우저 생성
         this.browser = await Puppeteer.launch({
-            headless: "new"
+            headless: true,
+            args: [
+                '--disable-geolocation',                  // 위치 정보 자체 비활성화
+            ]
         });
 
         while (!this.isStop) {  // IMAX관 시간표를 가져올 때까지 반복
