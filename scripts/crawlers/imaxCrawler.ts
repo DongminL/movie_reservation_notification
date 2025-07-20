@@ -11,7 +11,7 @@ class ImaxCrawler extends Crawler {
     async crawl(): Promise<string> {
         // 웹 크롤링을 위한 puppeteer 브라우저 생성
         this.browser = await Puppeteer.launch({
-            headless: false,
+            headless: true,
             args: [
                 '--disable-geolocation',                  // 위치 정보 자체 비활성화
             ]
@@ -55,6 +55,43 @@ class ImaxCrawler extends Crawler {
                         break;
                     }
                 }
+                
+                // 날짜 선택
+                const dayContainer = await page.waitForSelector('div.dayScroll_container__e9cLv');   // 날짜 렌더링 대기
+                const dayBtns = await dayContainer?.$$('div > div > div') || [];  // 날짜 버튼들
+
+                let isExistedTargetDate = false;
+                const targetDate = this.getTargetDate();
+                for (const dayBtn of dayBtns) {
+                    const button = await dayBtn.$('button');
+                    if (!button) {
+                        continue;
+                    }
+
+                    const span = await dayBtn.$('span.dayScroll_number__o8i9s');
+                    if (!span) {
+                        continue;
+                    }
+
+                    const day: string = await page.evaluate(e => e.textContent?.trim() || '', span);
+                    
+                    // 원하는 날짜 선택
+                    if (targetDate === day) {
+                        isExistedTargetDate = true;
+                        await button.click();
+                        break;
+                    }
+                }
+
+                // 원하는 날짜가 존재하지 않는 경우
+                if (!isExistedTargetDate) {
+                    console.log("IMAX관이 열리지 않았습니다.");
+
+                    await this.trick();   // 차단 회피
+                    await page.close(); // 페이지 종료
+
+                    continue;
+                }
 
                 // 극장 필터링
                 const filterBtn = await page.waitForSelector('button[aria-label="극장 속성"]');
@@ -63,6 +100,19 @@ class ImaxCrawler extends Crawler {
                 await imaxFilterBtn?.click();
                 const confirmBtn = await page.waitForSelector('div.bot-modal-footer > div.btn-wrap > button');
                 await confirmBtn?.click();
+
+                // 상영 정보가 없는 경우
+                const isEmptyTimetable = await page.evaluate(() => {
+                    return !!document.querySelector('div.empty-section');
+                });
+                if (isEmptyTimetable) {
+                    console.log("IMAX관이 열리지 않았습니다.");
+
+                    await this.trick();   // 차단 회피
+                    await page.close(); // 페이지 종료
+
+                    continue;
+                }
 
                 // 해당 날짜와 상영관의 시간표
                 await page.waitForSelector('ul.screenInfoTimes_scheduleWrap__sXjoc');  // 시간표 렌더링 대기
@@ -108,16 +158,6 @@ class ImaxCrawler extends Crawler {
                     }));
                 }
 
-                // 상영 정보가 없는 경우
-                if (movieTimeMap.size < 1) {
-                    console.log("IMAX관이 열리지 않았습니다.");
-
-                    await this.trick();   // 차단 회피
-                    await page.close(); // 페이지 종료
-
-                    continue;
-                }
-
                 // 출력할 내용
                 let result: string = MovieTime.toString(movieTimeMap, targetTheater, this.date);
 
@@ -139,6 +179,24 @@ class ImaxCrawler extends Crawler {
 
         this.browser.close();
         return "";
+    }
+
+    private getTargetDate(): string {
+        let targetDate = "";
+
+        // 월과 일을 10진수로 변환
+        const targetMonth: number = parseInt(this.date.substring(4, 6), 10);
+        const targetDay: number = parseInt(this.date.substring(6, 8), 10);
+
+        const currentMonth: number = new Date().getMonth() + 1;
+
+        if (currentMonth === targetMonth) {
+            targetDate += targetDay;
+        } else {
+            targetDate += `${targetMonth}.${targetDay}`;
+        }
+
+        return targetDate;
     }
 }
 
