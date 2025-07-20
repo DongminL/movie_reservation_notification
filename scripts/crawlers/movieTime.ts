@@ -43,7 +43,7 @@ class MovieTime {
             );
 
             // 영화 제목 
-            result += (`${movie}\n`);
+            result += (`🎬 ${movie}\n`);
 
             // 시간 및 좌석수 정보
             timeList.forEach((time) => {
