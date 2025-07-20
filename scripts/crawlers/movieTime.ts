@@ -33,15 +33,15 @@ class MovieTime {
         }
 
         let result: string = ""; // 상영 시간표 및 남은 좌석수
-                    
-        movieTimeMap.forEach((timeList, movie) => {
-            // 영화관 지점 및 날짜
-            result += (
-                `CGV ${targetTheater} 상영 시간표\n` + 
-                `${date.substring(0, 4)}년 ${date.substring(4, 6)}월 ${date.substring(6, 8)}일\n` +
-                "IMAX 오픈\n\n"
-            );
 
+        // 영화관 지점 및 날짜
+        result += (
+            `CGV ${targetTheater} 상영 시간표\n` + 
+            `${date.substring(0, 4)}년 ${date.substring(4, 6)}월 ${date.substring(6, 8)}일\n` +
+            "IMAX 오픈\n\n"
+        );            
+
+        movieTimeMap.forEach((timeList, movie) => {
             // 영화 제목 
             result += (`🎬 ${movie}\n`);
 
@@ -49,6 +49,7 @@ class MovieTime {
             timeList.forEach((time) => {
                 result += (`${time.startTime} ~ ${time.endTime} | 좌석수: ${time.seatInfo}\n`)
             });
+            result += "\n";
         });
 
         return result;
