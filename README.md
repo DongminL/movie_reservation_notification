@@ -28,7 +28,7 @@
         chatId:   # 2번에서 확인한 Chat ID 값 넣어주기
 
     urls:
-        imax: http://www.cgv.co.kr/theaters/?areacode=01&theaterCode=0013&date= # CGV 용산아이파크몰 시간표 URL
+        imax: https://cgv.co.kr/cnm/movieBook/cinema # CGV 극장별 시간표 URL
         dolby: https://www.megabox.co.kr/booking/timetable  # 메가박스 시간표 URL
     ```
 
