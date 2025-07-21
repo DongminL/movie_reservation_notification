@@ -77,8 +77,13 @@ class ImaxCrawler extends Crawler {
                     
                     // 원하는 날짜 선택
                     if (targetDate === day) {
-                        isExistedTargetDate = true;
-                        await button.click();
+                        // 비활성화된 버튼인지 확인
+                        const isDisabled = await button.evaluate(e => e.disabled)
+                        if (!isDisabled) {
+                            await button.click();
+                            isExistedTargetDate = true;
+                        }
+                        
                         break;
                     }
                 }
