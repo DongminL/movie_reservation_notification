@@ -157,7 +157,7 @@ class DolbyCrawler extends Crawler {
 
                 let timeTable: string = ""; // Dolby Cinema 상영 시간표 
                 theaterNm.each((i, e) => {
-                    if ($(e).text() == "Dolby Cinema [Laser]") {    // 상영관 이름 확인
+                    if ($(e).text().toUpperCase().includes("DOLBY CINEMA")) {    // 상영관 이름 확인
                         let movieNm: string = $(e).parents('.theater-list').find('.theater-tit > p > a').text().trim(); // Dolby Cinema관에서 상영하는 영화 이름
                         let play: cheerio.Cheerio = $(e).parents('.theater-type-box').find('.theater-time table.time-list-table > tbody > tr > td'); // 상영 시간 정보
                         let playDate: string | undefined = $(play).attr('play-de'); // 상영 날짜
