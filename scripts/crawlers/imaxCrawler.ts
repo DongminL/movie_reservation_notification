@@ -77,8 +77,13 @@ class ImaxCrawler extends Crawler {
                     
                     // 원하는 날짜 선택
                     if (targetDate === day) {
-                        isExistedTargetDate = true;
-                        await button.click();
+                        // 비활성화된 버튼인지 확인
+                        const isDisabled = await button.evaluate(e => e.disabled)
+                        if (!isDisabled) {
+                            await button.click();
+                            isExistedTargetDate = true;
+                        }
+                        
                         break;
                     }
                 }
@@ -186,14 +191,13 @@ class ImaxCrawler extends Crawler {
 
         // 월과 일을 10진수로 변환
         const targetMonth: number = parseInt(this.date.substring(4, 6), 10);
-        const targetDay: number = parseInt(this.date.substring(6, 8), 10);
+        const targetDay: string = this.date.substring(6, 8);
 
-        const currentMonth: number = new Date().getMonth() + 1;
-
-        if (currentMonth === targetMonth) {
-            targetDate += targetDay;
+        // 매월 1일의 날짜 형태
+        if (targetDay === '01') {
+            targetDate = `${targetMonth}.1`;
         } else {
-            targetDate += `${targetMonth}.${targetDay}`;
+            targetDate = targetDay;
         }
 
         return targetDate;
