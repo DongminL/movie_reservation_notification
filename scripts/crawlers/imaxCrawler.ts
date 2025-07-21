@@ -186,14 +186,13 @@ class ImaxCrawler extends Crawler {
 
         // 월과 일을 10진수로 변환
         const targetMonth: number = parseInt(this.date.substring(4, 6), 10);
-        const targetDay: number = parseInt(this.date.substring(6, 8), 10);
+        const targetDay: string = this.date.substring(6, 8);
 
-        const currentMonth: number = new Date().getMonth() + 1;
-
-        if (currentMonth === targetMonth) {
-            targetDate += targetDay;
+        // 매월 1일의 날짜 형태
+        if (targetDay === '01') {
+            targetDate = `${targetMonth}.1`;
         } else {
-            targetDate += `${targetMonth}.${targetDay}`;
+            targetDate = targetDay;
         }
 
         return targetDate;
