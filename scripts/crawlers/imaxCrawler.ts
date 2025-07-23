@@ -61,6 +61,8 @@ class ImaxCrawler extends Crawler {
                 const dayBtns = await dayContainer?.$$('div > div > div') || [];  // 날짜 버튼들
 
                 let isExistedTargetDate = false;
+                let cursorMonth: number = new Date().getMonth() + 1;    // 탐색 중인 월(Month)의 구간
+                const targetMonth: number = parseInt(this.date.substring(4, 6), 10);
                 const targetDate = this.getTargetDate();
                 for (const dayBtn of dayBtns) {
                     const button = await dayBtn.$('button');
@@ -73,10 +75,16 @@ class ImaxCrawler extends Crawler {
                         continue;
                     }
 
-                    const day: string = await page.evaluate(e => e.textContent?.trim() || '', span);
+                    const dayText: string = await page.evaluate(e => e.textContent?.trim() || '', span);
+
+                    // 탐색 중인 월 갱신
+                    if (dayText.includes('.')) {
+                        const [month, day]: string[] = dayText.split('.');
+                        cursorMonth = parseInt(month, 10);
+                    }
                     
                     // 원하는 날짜 선택
-                    if (targetDate === day) {
+                    if (targetDate === dayText && targetMonth === cursorMonth) {
                         // 비활성화된 버튼인지 확인
                         const isDisabled = await button.evaluate(e => e.disabled)
                         if (!isDisabled) {
