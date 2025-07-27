@@ -119,6 +119,10 @@ class ImaxCrawler extends Crawler {
                 const confirmBtn = await page.waitForSelector('div.bot-modal-footer > div.btn-wrap > button');
                 await confirmBtn?.click();
 
+                // 시간순으로 상영 시간표 보기
+                const sortByTimeBtn = await page.waitForSelector('div.linetabMini_container__VsBQ1 > button:nth-child(2)'); // 시간순 정렬 버튼
+                await sortByTimeBtn?.click();
+
                 // 상영 정보가 없는 경우
                 const isEmptyTimetable = await page.evaluate(() => {
                     return !!document.querySelector('div.empty-section');
