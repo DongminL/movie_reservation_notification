@@ -11,7 +11,7 @@ class ImaxCrawler extends Crawler {
     async crawl(): Promise<string> {
         // 웹 크롤링을 위한 puppeteer 브라우저 생성
         this.browser = await Puppeteer.launch({
-            headless: true,
+            headless: false,
             args: [
                 '--disable-geolocation',                  // 위치 정보 자체 비활성화
             ]
@@ -75,12 +75,17 @@ class ImaxCrawler extends Crawler {
                         continue;
                     }
 
-                    const dayText: string = await page.evaluate(e => e.textContent?.trim() || '', span);
+                    let dayText: string = await page.evaluate(e => e.textContent?.trim() || '', span);
 
                     // 탐색 중인 월 갱신
                     if (dayText.includes('.')) {
                         const [month, day]: string[] = dayText.split('.');
                         cursorMonth = parseInt(month, 10);
+
+                    } else if (dayText === "01") {
+                        // 2개월 이상 후에는 CGV에서 01로 표시됨
+                        cursorMonth += 1;
+                        dayText = `${cursorMonth}.1`;   // 이전 형식으로 변환
                     }
                     
                     // 원하는 날짜 선택
@@ -113,6 +118,10 @@ class ImaxCrawler extends Crawler {
                 await imaxFilterBtn?.click();
                 const confirmBtn = await page.waitForSelector('div.bot-modal-footer > div.btn-wrap > button');
                 await confirmBtn?.click();
+
+                // 시간순으로 상영 시간표 보기
+                const sortByTimeBtn = await page.waitForSelector('div.linetabMini_container__VsBQ1 > button:nth-child(2)'); // 시간순 정렬 버튼
+                await sortByTimeBtn?.click();
 
                 // 상영 정보가 없는 경우
                 const isEmptyTimetable = await page.evaluate(() => {
