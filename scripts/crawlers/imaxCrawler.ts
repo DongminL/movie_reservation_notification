@@ -85,7 +85,7 @@ class ImaxCrawler extends Crawler {
                     } else if (dayText === "01") {
                         // 2개월 이상 후에는 CGV에서 01로 표시됨
                         cursorMonth += 1;
-                        dayText = `${cursorMonth}.1`;   // 이전 형식으로 변환
+                        dayText = `${cursorMonth}.1`;   // 형식 통일
                     }
                     
                     // 원하는 날짜 선택
