@@ -1,5 +1,5 @@
 import Crawler from './crawler';
-import Puppeteer, { ElementHandle, Frame, Page } from 'puppeteer';
+import Puppeteer, { ElementHandle, Page } from 'puppeteer';
 import MovieTime from './movieTime';
 
 class ImaxCrawler extends Crawler {
@@ -11,7 +11,7 @@ class ImaxCrawler extends Crawler {
     async crawl(): Promise<string> {
         // 웹 크롤링을 위한 puppeteer 브라우저 생성
         this.browser = await Puppeteer.launch({
-            headless: false,
+            headless: true,
             args: [
                 '--disable-geolocation',                  // 위치 정보 자체 비활성화
             ]
@@ -62,8 +62,9 @@ class ImaxCrawler extends Crawler {
 
                 let isExistedTargetDate = false;
                 let cursorMonth: number = new Date().getMonth() + 1;    // 탐색 중인 월(Month)의 구간
-                const targetMonth: number = parseInt(this.date.substring(4, 6), 10);
-                const targetDate = this.getTargetDate();
+                const targetMonth: number = parseInt(this.date.substring(4, 6), 10);    // 원하는 날짜의 월(Month)
+                const targetDate = this.getTargetDate();    // 원하는 날짜
+
                 for (const dayBtn of dayBtns) {
                     const button = await dayBtn.$('button');
                     if (!button) {
@@ -85,7 +86,7 @@ class ImaxCrawler extends Crawler {
                     } else if (dayText === "01") {
                         // 2개월 이상 후에는 CGV에서 01로 표시됨
                         cursorMonth += 1;
-                        dayText = `${cursorMonth}.1`;   // 이전 형식으로 변환
+                        dayText = `${cursorMonth}.1`;   // 형식 통일
                     }
                     
                     // 원하는 날짜 선택
