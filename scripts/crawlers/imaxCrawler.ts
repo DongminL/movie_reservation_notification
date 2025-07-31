@@ -62,8 +62,9 @@ class ImaxCrawler extends Crawler {
 
                 let isExistedTargetDate = false;
                 let cursorMonth: number = new Date().getMonth() + 1;    // 탐색 중인 월(Month)의 구간
-                const targetMonth: number = parseInt(this.date.substring(4, 6), 10);
-                const targetDate = this.getTargetDate();
+                const targetMonth: number = parseInt(this.date.substring(4, 6), 10);    // 원하는 날짜의 월(Month)
+                const targetDate = this.getTargetDate();    // 원하는 날짜
+
                 for (const dayBtn of dayBtns) {
                     const button = await dayBtn.$('button');
                     if (!button) {
