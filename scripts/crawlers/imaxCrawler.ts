@@ -1,5 +1,5 @@
 import Crawler from './crawler';
-import Puppeteer, { ElementHandle, Frame, Page } from 'puppeteer';
+import Puppeteer, { ElementHandle, Page } from 'puppeteer';
 import MovieTime from './movieTime';
 
 class ImaxCrawler extends Crawler {
@@ -11,7 +11,7 @@ class ImaxCrawler extends Crawler {
     async crawl(): Promise<string> {
         // 웹 크롤링을 위한 puppeteer 브라우저 생성
         this.browser = await Puppeteer.launch({
-            headless: false,
+            headless: true,
             args: [
                 '--disable-geolocation',                  // 위치 정보 자체 비활성화
             ]
