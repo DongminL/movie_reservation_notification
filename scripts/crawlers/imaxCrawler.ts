@@ -64,6 +64,7 @@ class ImaxCrawler extends Crawler {
                 let cursorMonth: number = new Date().getMonth() + 1;    // 탐색 중인 월(Month)의 구간
                 const targetMonth: number = parseInt(this.date.substring(4, 6), 10);    // 원하는 날짜의 월(Month)
                 const targetDate = this.getTargetDate();    // 원하는 날짜
+                let hasPreviousMonth: boolean = false;   // 이전 월의 존재 여부
 
                 for (const dayBtn of dayBtns) {
                     const button = await dayBtn.$('button');
@@ -82,10 +83,16 @@ class ImaxCrawler extends Crawler {
                     if (dayText.includes('.')) {
                         const [month, day]: string[] = dayText.split('.');
                         cursorMonth = parseInt(month, 10);
+                        hasPreviousMonth = true;
 
-                    } else if (dayText === "01") {
-                        // 2개월 이상 후에는 CGV에서 01로 표시됨
-                        cursorMonth += 1;
+                    } else if (dayText === '01') {
+                        // 당일 또는 2개월 이상 후에는 CGV에서 01로 표시됨
+
+                        // 이전 month가 존재할 때만, 다음 달로 넘어간 것으로 간주
+                        if (hasPreviousMonth) {
+                            cursorMonth += 1;
+                        }
+                        
                         dayText = `${cursorMonth}.1`;   // 형식 통일
                     }
                     
