@@ -60,10 +60,10 @@ class ImaxCrawler extends Crawler {
                 const dayContainer = await page.waitForSelector('div.dayScroll_container__e9cLv');   // 날짜 렌더링 대기
                 const dayBtns = await dayContainer?.$$('div > div > div') || [];  // 날짜 버튼들
 
-                let isExistedTargetDate = false;
+                let isExistedTargetDate: boolean = false;
                 let cursorMonth: number = new Date().getMonth() + 1;    // 탐색 중인 월(Month)의 구간
                 const targetMonth: number = parseInt(this.date.substring(4, 6), 10);    // 원하는 날짜의 월(Month)
-                const targetDate = this.getTargetDate();    // 원하는 날짜
+                const targetDate: string = this.getTargetDate();    // 원하는 날짜
                 let hasPreviousMonth: boolean = false;   // 이전 월의 존재 여부
 
                 for (const dayBtn of dayBtns) {
