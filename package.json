@@ -4,7 +4,9 @@
   "description": "",
   "main": "scripts/main.js",
   "scripts": {
-    "start": "node --loader ts-node/esm --experimental-specifier-resolution=node scripts/main.ts"
+    "start": "node --loader ts-node/esm --experimental-specifier-resolution=node scripts/main.ts",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc"
   },
   "keywords": [],
   "author": "",
