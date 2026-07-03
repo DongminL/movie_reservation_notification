@@ -20,7 +20,6 @@
 
 3. 프로젝트 root 위치에 `config.yaml` 파일 생성
 
-
     3-1. 아래 내용대로 구성하기
     ``` yaml
     telegram:
@@ -43,10 +42,14 @@
 
 ## 텔레그램 명령어
 
-### 크롤링 시작 : /start 
+### 크롤링 시작 : /start
 ---
 
 <image src="https://github.com/user-attachments/assets/22aa00b2-aca0-4dcc-8488-6bd73e0d9e50" width="50%" height="50%">
+
+### 알림 대기 중단 : /stop
+---
+<image src="https://github.com/user-attachments/assets/89261525-2faa-4338-b1c4-bab8bea900ee" width="50%" height="50%">
 
 ### 날짜 설정 : /setdate {yyyymmdd} (기본값 : 실행한 당일날짜)
 ---
@@ -60,6 +63,6 @@
 >
 >- 코돌비 : MEGABOX 코엑스점 돌비 시네마
 >
->- 남돌비 : MEGABOX 남양주 현대아울렛 스페이스원점 돌비 시네마 
+>- 남돌비 : MEGABOX 남양주 현대아울렛 스페이스원점 돌비 시네마
 
 <image src="https://github.com/user-attachments/assets/b5f44ece-e60c-48d5-82f8-72363257ed96" width="50%" height="50%">
