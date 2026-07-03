@@ -9,25 +9,50 @@ class TelegramBot {
 
     private readonly token: string; // Telegram Bot의 Token 값
     private readonly chatId: string;    // 알림 받을 텔레그램 채팅방의 ID 값
-    private bot: telegram;  // telegram bot api 객체 
+    private bot: telegram;  // telegram bot api 객체
     private date: string;   // 현재 크롤링하고 있는 날짜 (Default: 당일)
     private theater: string;    // 현재 크롤링하고 있는 극장   (Default : 용산 아이파크점)
-    private crawler: Crawler;   // 크롤링 객체 
+    private crawler: Crawler;   // 크롤링 객체
+    private isCrawling: boolean;    // 현재 폴링 중 여부 (중복 /start 방지)
 
     constructor() {
-        this.token = config.telegram.token; 
-        this.chatId = config.telegram.chatId;  
-        this.bot = new telegram(this.token, { polling: true }); 
-        this.date = this.today();   
-        this.theater = "용아맥";    
-        this.crawler = new ImaxCrawler(this.date, this.theater); 
+        this.token = config.telegram.token;
+        this.chatId = config.telegram.chatId;
+        this.bot = new telegram(this.token, { polling: true });
+        this.date = this.today();
+        this.theater = "용아맥";
+        this.isCrawling = false;
+        this.crawler = this.buildCrawler(this.date, this.theater);
+
+        // 텔레그램 polling 오류가 봇 프로세스를 죽이지 않도록 처리
+        this.bot.on('polling_error', (err) => {
+            console.error('[polling_error]', (err as Error).message ?? err);
+        });
+        this.bot.on('error', (err) => {
+            console.error('[telegram_error]', (err as Error).message ?? err);
+        });
     }
 
     /* 메시지 전송 */
     sendMsg(msg: string | null): void {
         if (msg) {
-            this.bot.sendMessage(this.chatId, msg, { parse_mode: 'Markdown' });
+            this.bot.sendMessage(this.chatId, msg, { parse_mode: 'Markdown' })
+                .catch((err) => console.error('[sendMessage 실패]', (err as Error).message ?? err));
         }
+    }
+
+    /**
+     * 크롤러를 생성하고 notify 콜백을 주입한다.
+     * 모든 크롤러 생성 지점을 여기서 통일 관리.
+     */
+    private buildCrawler(date: string, theater: string): Crawler {
+        const crawler: Crawler = theater === "용아맥"
+            ? new ImaxCrawler(date, theater)
+            : new DolbyCrawler(date, theater);
+
+        crawler.notify = (msg: string) => this.sendMsg(msg);
+
+        return crawler;
     }
 
     /* Bot 기능 설정 */
@@ -35,18 +60,46 @@ class TelegramBot {
         // 명령어 목록
         this.bot.setMyCommands([
             { command: '/start', description: '알리미 시작' },
+            { command: '/stop', description: '알림 대기 중단' },
             { command: '/setdate', description: '날짜 설정 (YYYYMMDD)' },
             { command: '/settheater', description: '극장 설정 (용아맥, 남돌비, 코돌비)' }
         ]);
 
         // 크롤링 시작
         this.bot.onText(/\/start/, async (msg, match) => {
+            // 이미 폴링 중이면 중복 실행 방지
+            if (this.isCrawling) {
+                this.sendMsg("이미 알림 대기 중입니다.\n/stop 으로 중단할 수 있어요.");
+                return;
+            }
+
             const formattedDate = `${this.date.substring(0, 4)}년 ${this.date.substring(4, 6)}월 ${this.date.substring(6, 8)}`;
             this.sendMsg(`${this.theater}의 ${formattedDate}일자 상영 정보를 가져오는 중입니다...\n(1분 이상 지연되면 아직 상영 정보가 오픈되지 않은 것입니다!)`);
 
-            const result: string = await this.crawler.crawl();
+            this.isCrawling = true;
+            try {
+                const result: string = await this.crawler.crawl();
 
-            this.sendMsg(result);
+                // 빈 문자열은 /stop 으로 중단된 것 — 결과 메시지를 보내지 않음
+                if (result) {
+                    this.sendMsg(result);
+                }
+            } catch (err) {
+                console.error('[crawl 예외]', err);
+                this.sendMsg("크롤링 중 예기치 않은 오류가 발생했습니다. 다시 /start 해보세요.");
+            } finally {
+                this.isCrawling = false;
+            }
+        });
+
+        /* 알림 대기 중단 (명령어 : "/stop") */
+        this.bot.onText(/\/stop/, (msg) => {
+            if (this.isCrawling) {
+                this.crawler.stopCrawler();
+                this.sendMsg("알림 대기를 중단했습니다.");
+            } else {
+                this.sendMsg("현재 대기 중인 알림이 없습니다.");
+            }
         });
 
         /* 예매할 날짜 설정 (명령어 : "/setdate yyyymmdd") */
@@ -59,16 +112,10 @@ class TelegramBot {
                     if (this.crawler.changeDate(setDate)) {
                         this.date = setDate;  // 크롤링 날짜 변경
                         console.log(`변경된 날짜 : ${setDate}`);
-    
-                        if (this.theater === "용아맥") {
-                            this.crawler = new ImaxCrawler(setDate, this.theater);
-    
-                            this.sendMsg(`변경된 날짜 : ${setDate}\n/start 명령으로 알림을 받아보세요!`);
-                        } else {
-                            this.crawler = new DolbyCrawler(setDate, this.theater);
-    
-                            this.sendMsg(`변경된 날짜 : ${setDate}\n/start 명령으로 알림을 받아보세요!`);
-                        }
+
+                        this.crawler = this.buildCrawler(setDate, this.theater);
+
+                        this.sendMsg(`변경된 날짜 : ${setDate}\n/start 명령으로 알림을 받아보세요!`);
                     } else {
                         this.sendMsg("이미 설정된 날짜입니다.");
                     }
@@ -76,7 +123,7 @@ class TelegramBot {
             }
         });
 
-        /* 예매할 극장 설정 (명령어 : "/settheaer 용아맥 OR 남돌비 OR 코돌비") */
+        /* 예매할 극장 설정 (명령어 : "/settheater 용아맥 OR 남돌비 OR 코돌비") */
         this.bot.onText(/\/settheater (.+)/, async (msg, match) => {
             if (match) {
                 let setTheater: string = match[1].trim();  // 입력값 가져오기
@@ -85,33 +132,24 @@ class TelegramBot {
                 if (this.isValidTheater(setTheater)) {
                     if (this.crawler.changeTheater(setTheater)) {
                         this.theater = setTheater;  // 크롤링 극장 변경
-        
-                        if (setTheater === "용아맥") {
-                            console.log(`변경된 극장 : ${setTheater}`);
-        
-                            this.crawler = new ImaxCrawler(this.date, setTheater);
-        
-                            this.sendMsg(`변경된 극장 : ${setTheater}\n/start 명령으로 알림을 받아보세요!`);
-                        } else if (setTheater === "남돌비" || setTheater === "코돌비") {
-                            console.log(`변경된 극장 : ${setTheater}`);
-        
-                            this.crawler = new DolbyCrawler(this.date, setTheater);
-        
-                            this.sendMsg(`변경된 극장 : ${setTheater}\n/start 명령으로 알림을 받아보세요!`);
-                        }
+                        console.log(`변경된 극장 : ${setTheater}`);
+
+                        this.crawler = this.buildCrawler(this.date, setTheater);
+
+                        this.sendMsg(`변경된 극장 : ${setTheater}\n/start 명령으로 알림을 받아보세요!`);
                     } else {
                         this.sendMsg("이미 설정된 극장입니다.");
                     }
                 } else {
                     this.sendMsg("잘못된 극장 설정입니다.\n다시 입력해 주세요.");
                 }
-            }    
+            }
         });
     }
 
     /* 당일 날짜 */
     today(): string {
-        const date: Date = new Date();    // Date 객체 생성  
+        const date: Date = new Date();    // Date 객체 생성
         let year: string = String(date.getFullYear());  // 년도 (yyyy)
         let month: string = String("0" + (date.getMonth() + 1)).slice(-2);  // 두 자리수의 월 (mm)
         let day: string = String("0" + date.getDate()).slice(-2);   // 두 자리수의 일 (dd)
