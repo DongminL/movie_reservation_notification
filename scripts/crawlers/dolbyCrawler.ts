@@ -189,11 +189,15 @@ class DolbyCrawler extends Crawler {
                 let play: cheerio.Cheerio = $(e).parents('.theater-type-box').find('.theater-time table.time-list-table > tbody > tr > td'); // 상영 시간 정보
                 let playDate: string | undefined = $(play).attr('play-de'); // 상영 날짜
 
+                // 상영관 지점 및 날짜(헤더)는 최초 한 번만 추가
+                if (!dolby) {
+                    timeTable += (brchNm + "\n" + playDate?.substring(0, 4) + "년 " + playDate?.substring(4, 6) + "월 " +
+                        playDate?.substring(6, 8) + "일\nDolby Cinema 오픈\n\n");
+                }
+
                 dolby = true;
 
-                timeTable += (brchNm + "\n" + playDate?.substring(0, 4) + "년 " + playDate?.substring(4, 6) + "월 " +
-                    playDate?.substring(6, 8) + "일\nDolby Cinema 오픈\n");  // 영화관 지점 및 날짜 추가
-                timeTable += ("\n" + movieNm + "\n\n"); // 영화 제목 추가
+                timeTable += (`🎬 ${movieNm}\n`); // 영화 제목 추가
 
                 play.each((i, e) => {
                     let playTime: string = $(e).find('div.td-ab div.play-time > p').first().text().trim();  // 상영 시간
@@ -207,6 +211,7 @@ class DolbyCrawler extends Crawler {
 
                     timeTable += (`${playTime} | 남은 좌석수 : ${seatRemainCnt}\n`);
                 });
+                timeTable += "\n";
             }
         });
 
