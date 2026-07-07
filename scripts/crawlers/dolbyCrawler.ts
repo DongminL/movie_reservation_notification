@@ -16,7 +16,7 @@ class DolbyCrawler extends Crawler {
 
         // 웹 크롤링을 위한 puppeteer 객체 생성
         this.browser = await Puppeteer.launch({
-            headless: true  // imaxCrawler와 통일 (기존 "new"는 deprecated)
+            headless: true
         });
 
         try {
@@ -34,13 +34,13 @@ class DolbyCrawler extends Crawler {
 
                     await page.goto(this.config.urls.dolby, pageOption);   // 메가박스 예매 사이트 접속
 
-                    await this.selectTheater(page);   // 영화관 선택
+                    await this.selectTheater(page);
 
-                    await this.openCalendar(page);   // 날짜 선택 (달력 열기)
-                    await this.adjustMonth(page);     // 원하는 월로 이동
-                    await this.selectDay(page);       // 원하는 일 클릭
+                    await this.openCalendar(page);
+                    await this.adjustMonth(page);
+                    await this.selectDay(page);
 
-                    await this.waitForTimetable(page);   // html 불러오기까지 대기
+                    await this.waitForTimetable(page);
 
                     // 스크래핑을 위한 cheerio 객체로 Dolby Cinema 시간표 파싱
                     const { timeTable, dolby } = await this.parseDolbyTimetable(page);

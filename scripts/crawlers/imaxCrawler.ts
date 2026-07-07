@@ -38,7 +38,7 @@ class ImaxCrawler extends Crawler {
                     // 크롤링할 극장
                     const targetTheater: string = this.theater === "용아맥" ? "용산아이파크몰" : "";
 
-                    await this.selectTheater(page, targetTheater);   // 영화관 선택
+                    await this.selectTheater(page, targetTheater);
 
                     // 원하는 날짜가 존재하지 않는 경우 (= 아직 안 열림, 정상 분기)
                     if (!await this.selectTargetDate(page)) {
@@ -51,8 +51,8 @@ class ImaxCrawler extends Crawler {
                         continue;
                     }
 
-                    await this.applyImaxFilter(page);   // 극장 필터링 (IMAX만)
-                    await this.sortByTime(page);         // 시간순으로 상영 시간표 보기
+                    await this.applyImaxFilter(page);
+                    await this.sortByTime(page);
 
                     // 상영 정보가 없는 경우 (= 날짜는 있지만 IMAX 편성 없음, 정상 분기)
                     if (await this.isTimetableEmpty(page)) {
@@ -171,7 +171,6 @@ class ImaxCrawler extends Crawler {
                     await button.click();
                     isExistedTargetDate = true;
                 }
-
                 break;
             }
         }
