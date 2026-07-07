@@ -148,8 +148,9 @@ class DolbyCrawler extends Crawler {
         // 원하는 일 (예: "01" -> "1", "10" -> "10")
         const targetDay: string = String(parseInt(this.date.substring(6, 8), 10));
 
-        await page.waitForSelector(`#ui-datepicker-div > table > tbody td`);
-        const days: ElementHandle<HTMLTableCellElement>[] = await page.$$(`#ui-datepicker-div > table > tbody td`);
+        // 이전/다음 달의 패딩 셀(같은 일자 숫자를 가질 수 있음)은 클릭해도 반응이 없으므로 제외
+        await page.waitForSelector(`#ui-datepicker-div > table > tbody td:not(.ui-datepicker-other-month)`);
+        const days: ElementHandle<HTMLTableCellElement>[] = await page.$$(`#ui-datepicker-div > table > tbody td:not(.ui-datepicker-other-month)`);
         let dayText: string | null;
         for (let i = 0; i < days.length; i++) {
             dayText = await page.evaluate(elem => elem.textContent, days[i]);  // 며칠인지 가져오기
