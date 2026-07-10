@@ -198,13 +198,10 @@ class DolbyCrawler extends Crawler {
         let $: cheerio.Root = Cheerio.load(content);
 
         let brchNm = $('#contents > div > div > h3:nth-child(5)').text();   // 극장 이름
-        console.log(brchNm);
-
         const theaterNm = $('p.theater-name');  // 상영관 이름들
-        console.log(theaterNm.length);
-
         let timeTable: string = ""; // Dolby Cinema 상영 시간표
         let dolby: boolean = false;  // Dolby Cinema 유무
+        
         theaterNm.each((i, e) => {
             if ($(e).text().toUpperCase().includes("DOLBY CINEMA")) {    // 상영관 이름 확인
                 let movieNm: string = $(e).parents('.theater-list').find('.theater-tit > p > a').text().trim(); // Dolby Cinema관에서 상영하는 영화 이름
