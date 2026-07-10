@@ -40,7 +40,16 @@ class DolbyCrawler extends Crawler {
                     await this.adjustMonth(page);
                     await this.selectDay(page);
 
-                    await this.waitForTimetable(page);
+                    // 원하는 날짜가 아직 예매 가능일이 아닌 경우 (= 아직 안 열림, 정상 분기)
+                    if (!await this.waitForTimetable(page)) {
+                        console.log("Dolby Cinema가 열리지 않았습니다.");
+
+                        this.resetErrorCount();  // 사이트는 정상 응답 중
+                        await this.closeQuietly(page);
+                        await this.trick();   // 차단 회피
+
+                        continue;
+                    }
 
                     // 스크래핑을 위한 cheerio 객체로 Dolby Cinema 시간표 파싱
                     const { timeTable, dolby } = await this.parseDolbyTimetable(page);
@@ -163,11 +172,24 @@ class DolbyCrawler extends Crawler {
         }
     }
 
-    /* 날짜 클릭 후 상영관/시간표가 렌더링될 때까지 대기 */
-    private async waitForTimetable(page: Page): Promise<void> {
-        await page.waitForSelector(`#contents > div > div > div.time-schedule.mb30 > div > div.date-list > div.date-area > div > button[date-data="${this.date.substring(0, 4)}.${this.date.substring(4, 6)}.${this.date.substring(6, 8)}"]`);
+    /* 날짜 클릭 후 상영관/시간표가 렌더링될 때까지 대기. 예매 가능 기간을 벗어나 '예매가능일이 아닙니다' 팝업이 뜨면 false 반환 */
+    private async waitForTimetable(page: Page): Promise<boolean> {
+        const dateButtonSelector = `#contents > div > div > div.time-schedule.mb30 > div > div.date-list > div.date-area > div > button[date-data="${this.date.substring(0, 4)}.${this.date.substring(4, 6)}.${this.date.substring(6, 8)}"]`;
+        const popupTextSelector = 'section.alert-popup .txt-common';
+
+        // 날짜 버튼이 나타나거나(예매 가능) 예매 불가 팝업이 뜰 때까지(예매 불가) 대기
+        await page.waitForSelector(`${dateButtonSelector}, ${popupTextSelector}`);
+
+        const popupText: string | null = await page.$eval(popupTextSelector, elem => elem.textContent).catch(() => null);
+
+        if (popupText?.includes('예매가능일이 아닙니다')) {
+            return false;
+        }
+
         await page.waitForSelector('div.theater-list');
-        await page.waitForSelector(`.theater-time table.time-list-table > tbody > tr > td[play-de="${this.date}"]`)
+        await page.waitForSelector(`.theater-time table.time-list-table > tbody > tr > td[play-de="${this.date}"]`);
+
+        return true;
     }
 
     /* cheerio로 페이지 HTML을 파싱해 Dolby Cinema 상영 시간표를 만든다 */
