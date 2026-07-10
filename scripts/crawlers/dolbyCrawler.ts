@@ -16,7 +16,7 @@ class DolbyCrawler extends Crawler {
 
         // 웹 크롤링을 위한 puppeteer 객체 생성
         this.browser = await Puppeteer.launch({
-            headless: true
+            headless: 'new'
         });
 
         try {
