@@ -14,7 +14,7 @@ class ImaxCrawler extends Crawler {
 
         // 웹 크롤링을 위한 puppeteer 브라우저 생성
         this.browser = await Puppeteer.launch({
-            headless: true,
+            headless: 'new',
             args: [
                 '--disable-geolocation',                  // 위치 정보 자체 비활성화
             ]
