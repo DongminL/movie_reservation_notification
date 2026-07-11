@@ -173,11 +173,11 @@ class ImaxCrawler extends Crawler {
     /* 극장 속성 필터에서 IMAX만 선택 후 확인 */
     private async applyImaxFilter(page: Page): Promise<void> {
         const filterBtn = await page.waitForSelector('button[aria-label="극장 속성"]');
-        await filterBtn?.click();
+        await page.evaluate(elem => (elem as HTMLElement)?.click(), filterBtn);
         const imaxFilterBtn = await page.waitForSelector('#\\30 3-TCSCNS_GRAD_CD');
-        await imaxFilterBtn?.click();
+        await page.evaluate(elem => (elem as HTMLElement)?.click(), imaxFilterBtn);
         const confirmBtn = await page.waitForSelector('div.bot-modal-footer > div.btn-wrap > button');
-        await confirmBtn?.click();
+        await page.evaluate(elem => (elem as HTMLElement)?.click(), confirmBtn);
     }
 
     /* 상영 시간표를 시간순 정렬 */
