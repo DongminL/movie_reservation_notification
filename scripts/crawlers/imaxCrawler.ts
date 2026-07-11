@@ -183,14 +183,23 @@ class ImaxCrawler extends Crawler {
     /* 상영 시간표를 시간순 정렬 */
     private async sortByTime(page: Page): Promise<void> {
         const sortByTimeBtn = await page.waitForSelector('div.linetabMini_container__VsBQ1 > button:nth-child(2)'); // 시간순 정렬 버튼
-        await sortByTimeBtn?.click();
+        await page.evaluate(elem => (elem as HTMLElement)?.click(), sortByTimeBtn);
     }
 
     /* 상영 시간표가 비어있는지(= IMAX 편성 없음) 확인 */
     private async isTimetableEmpty(page: Page): Promise<boolean> {
-        return page.evaluate(() => {
-            return !!document.querySelector('div.empty-section');
-        });
+        // 정렬 클릭 직후엔 리렌더링이 끝나기 전일 수 있으므로,
+        // 빈 상태(empty-section) 또는 실제 시간표 중 하나가 나타날 때까지 대기
+        try {
+            await page.waitForSelector(
+                'ul.screenInfoTimes_scheduleWrap__sXjoc',
+                { timeout: 10000 }
+            );
+        } catch (error) {
+            // 10초가 지나도 시간표가 렌더링 되지 않으면 시간표가 비어있는 것으로 간주
+            return true;
+        }
+        return false;
     }
 
     /* 해당 날짜/상영관의 시간표를 영화별로 매핑해서 반환 */
