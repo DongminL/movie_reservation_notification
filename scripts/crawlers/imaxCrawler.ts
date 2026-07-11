@@ -14,7 +14,7 @@ class ImaxCrawler extends Crawler {
 
         // 웹 크롤링을 위한 puppeteer 브라우저 생성
         this.browser = await Puppeteer.launch({
-            headless: false,
+            headless: 'new',
             args: [
                 '--disable-geolocation',                  // 위치 정보 자체 비활성화
             ]
@@ -44,7 +44,6 @@ class ImaxCrawler extends Crawler {
                     );
 
                     await this.applyImaxFilter(page);
-                    await this.sortByTime(page);
 
                     // 상영 정보가 없는 경우 (= 날짜는 있지만 IMAX 편성 없음, 정상 분기)
                     if (await this.isTimetableEmpty(page)) {
@@ -56,6 +55,8 @@ class ImaxCrawler extends Crawler {
 
                         continue;
                     }
+
+                    await this.sortByTime(page);
 
                     // 해당 날짜와 상영관의 시간표를 영화별로 매핑
                     const movieTimeMap: Map<string, MovieTime[]> = await this.parseTimetable(page);
@@ -172,6 +173,9 @@ class ImaxCrawler extends Crawler {
 
     /* 극장 속성 필터에서 IMAX만 선택 후 확인 */
     private async applyImaxFilter(page: Page): Promise<void> {
+        // 극장 선택 기다리기
+        await page.waitForSelector('div.roundtab_container__MA2_a > div > div > div > button[title="선택됨"]');
+
         const filterBtn = await page.waitForSelector('button[aria-label="극장 속성"]');
         await page.evaluate(elem => (elem as HTMLElement)?.click(), filterBtn);
         const imaxFilterBtn = await page.waitForSelector('#\\30 3-TCSCNS_GRAD_CD');
@@ -188,11 +192,9 @@ class ImaxCrawler extends Crawler {
 
     /* 상영 시간표가 비어있는지(= IMAX 편성 없음) 확인 */
     private async isTimetableEmpty(page: Page): Promise<boolean> {
-        // 정렬 클릭 직후엔 리렌더링이 끝나기 전일 수 있으므로,
-        // 빈 상태(empty-section) 또는 실제 시간표 중 하나가 나타날 때까지 대기
         try {
             await page.waitForSelector(
-                'ul.screenInfoTimes_scheduleWrap__sXjoc',
+                'div.screenInfo_container__XpHXJ',
                 { timeout: 10000 }
             );
         } catch (error) {
