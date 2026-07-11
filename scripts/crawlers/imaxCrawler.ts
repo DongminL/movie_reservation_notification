@@ -38,10 +38,8 @@ class ImaxCrawler extends Crawler {
                         : this.theater;
 
                     // CGV 용산아이파크몰 예매 사이트 접속
-                    await page.goto(
-                        `${this.config.urls.imax}?siteNo=0013&siteNm=${targetTheater}&scnYmd=${this.date}`,
-                        pageOption
-                    );
+                    const targetUrl = `${this.config.urls.imax}?siteNo=0013&siteNm=${targetTheater}&scnYmd=${this.date}`;
+                    await page.goto(targetUrl, pageOption);
 
                     await this.applyImaxFilter(page);
 
@@ -63,7 +61,7 @@ class ImaxCrawler extends Crawler {
 
                     // 출력할 내용
                     let result = MovieTime.toString(movieTimeMap, targetTheater, this.date);
-
+                    result += `[예매하러 가기](${targetUrl})\n`;
                     console.log(result);
 
                     await this.closeQuietly(page);  // puppeteer 페이지 종료
@@ -125,7 +123,7 @@ class ImaxCrawler extends Crawler {
         await page.waitForSelector('ul.screenInfoTimes_scheduleWrap__sXjoc');  // 시간표 렌더링 대기
         const timetable = await page.$$('div[class="screenInfoTimes_startTimeItem__JW8_2"]');
 
-        const movieTimeMap = new Map<string, MovieTime[]>();
+        const movieTimeMap: Map<string, MovieTime[]> = new Map();
 
         for (const item of timetable) {
             const screenType = await item.$eval(
