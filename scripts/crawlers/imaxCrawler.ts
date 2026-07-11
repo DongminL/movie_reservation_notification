@@ -14,7 +14,7 @@ class ImaxCrawler extends Crawler {
 
         // 웹 크롤링을 위한 puppeteer 브라우저 생성
         this.browser = await Puppeteer.launch({
-            headless: 'new',
+            headless: false,
             args: [
                 '--disable-geolocation',                  // 위치 정보 자체 비활성화
             ]
@@ -33,23 +33,15 @@ class ImaxCrawler extends Crawler {
                         timeout: 20000
                     } as const;
 
-                    await page.goto(this.config.urls.imax, pageOption);   // CGV 극장별 예매 사이트 접속
+                    const targetTheater: string = this.theater === "용아맥"
+                        ? "용산아이파크몰"
+                        : this.theater;
 
-                    // 크롤링할 극장
-                    const targetTheater: string = this.theater === "용아맥" ? "용산아이파크몰" : "";
-
-                    await this.selectTheater(page, targetTheater);
-
-                    // 원하는 날짜가 존재하지 않는 경우 (= 아직 안 열림, 정상 분기)
-                    if (!await this.selectTargetDate(page)) {
-                        console.log("IMAX관이 열리지 않았습니다.");
-
-                        this.resetErrorCount();  // 사이트는 정상 응답 중
-                        await this.closeQuietly(page);
-                        await this.trick();   // 차단 회피
-
-                        continue;
-                    }
+                    // CGV 용산아이파크몰 예매 사이트 접속
+                    await page.goto(
+                        `${this.config.urls.imax}?siteNo=0013&siteNm=${targetTheater}&scnYmd=${this.date}`,
+                        pageOption
+                    );
 
                     await this.applyImaxFilter(page);
                     await this.sortByTime(page);
