@@ -14,6 +14,11 @@ interface CrawlConfig {
     urls: {
       imax: string;
       dolby: string;
+    },
+
+    watch: {
+      horizonDays: number;
+      pollIntervalSec: number;
     }
 }
 
@@ -40,6 +45,8 @@ if (!config?.telegram?.token) missingKeys.push('telegram.token');
 if (!config?.telegram?.chatId) missingKeys.push('telegram.chatId');
 if (!config?.urls?.imax)       missingKeys.push('urls.imax');
 if (!config?.urls?.dolby)      missingKeys.push('urls.dolby');
+if (!config?.watch?.horizonDays)      missingKeys.push('watch.horizonDays');
+if (!config?.watch?.pollIntervalSec)  missingKeys.push('watch.pollIntervalSec');
 
 if (missingKeys.length > 0) {
     throw new Error(
