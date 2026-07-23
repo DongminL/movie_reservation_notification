@@ -29,6 +29,10 @@
     urls:
         imax: https://cgv.co.kr/cnm/movieBook/cinema # CGV 극장별 시간표 URL
         dolby: https://www.megabox.co.kr/booking/timetable  # 메가박스 시간표 URL
+
+    watch:
+        horizonDays: # 오늘부터 며칠 뒤까지 조회할지 (일)
+        pollIntervalSec: # 폴링 주기 (초)
     ```
 
 4. `npm start`로 알리미 실행하기
@@ -66,3 +70,13 @@
 >- 남돌비 : MEGABOX 남양주 현대아울렛 스페이스원점 돌비 시네마
 
 <image src="https://github.com/user-attachments/assets/b5f44ece-e60c-48d5-82f8-72363257ed96" width="50%" height="50%">
+
+### 용아맥 신규 오픈 감시 : /watchimax
+---
+
+<image src="https://github.com/user-attachments/assets/de1fee82-c69b-468c-9e5b-b63b4688a2d0" width="50%" height="50%">
+
+### 용아맥 신규 오픈 감시 중지 : /unwatch
+---
+
+<image src="https://github.com/user-attachments/assets/697ae727-9ae7-469d-b7cc-dd0b30b56c98" width="50%" height="50%">
