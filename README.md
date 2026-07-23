@@ -18,9 +18,18 @@
 
 2. 텔레그램 봇 생성 및 Token, Chat ID 확인하기 ([참고](https://gabrielkim.tistory.com/entry/Telegram-Bot-Token-%EB%B0%8F-Chat-Id-%EC%96%BB%EA%B8%B0))
 
-3. 프로젝트 root 위치에 `config.yaml` 파일 생성
+3. 프로젝트 root 위치에 `data/imax-snapshot.json` 파일 생성 (신규 오픈 감시용)
 
-    3-1. 아래 내용대로 구성하기
+    3-1. `imax-snapshot.json` 파일은 아래 내용대로 구성하기
+    ``` json
+    {
+        
+    }
+    ```
+
+4. 프로젝트 root 위치에 `config.yaml` 파일 생성
+
+    4-1. 아래 내용대로 구성하기
     ``` yaml
     telegram:
         token:    # 2번에서 확인한 Telegram Bot Token 값 넣어주기
@@ -35,7 +44,7 @@
         pollIntervalSec: # 폴링 주기 (초)
     ```
 
-4. `npm start`로 알리미 실행하기
+5. `npm start`로 알리미 실행하기
 
 <br>
 
