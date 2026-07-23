@@ -2,6 +2,7 @@ import telegram from 'node-telegram-bot-api';
 import Crawler from './crawlers/crawler';
 import ImaxCrawler from './crawlers/imaxCrawler';
 import DolbyCrawler from './crawlers/dolbyCrawler';
+import ImaxWatcher from './monitors/imaxWatcher';
 import { config } from './config';
 
 
@@ -14,6 +15,7 @@ class TelegramBot {
     private theater: string;    // 현재 크롤링하고 있는 극장   (Default : 용산 아이파크점)
     private crawler: Crawler;   // 크롤링 객체
     private isCrawling: boolean;    // 현재 폴링 중 여부 (중복 /start 방지)
+    private readonly imaxWatcher: ImaxWatcher;  // 날짜 무관 용산 IMAX 신규 오픈 감시 객체
 
     constructor() {
         this.token = config.telegram.token;
@@ -23,6 +25,8 @@ class TelegramBot {
         this.theater = "용아맥";
         this.isCrawling = false;
         this.crawler = this.buildCrawler(this.date, this.theater);
+        this.imaxWatcher = new ImaxWatcher();
+        this.imaxWatcher.notify = (msg: string) => this.sendMsg(msg);
 
         // 텔레그램 polling 오류가 봇 프로세스를 죽이지 않도록 처리
         this.bot.on('polling_error', (err) => {
@@ -33,12 +37,21 @@ class TelegramBot {
         });
     }
 
+    /* 텔레그램 메시지 최대 길이 (4096자, 초과 시 400 Bad Request) */
+    private static readonly MAX_MSG_LENGTH = 4000;
+
     /* 메시지 전송 */
     sendMsg(msg: string | null): void {
-        if (msg) {
-            this.bot.sendMessage(this.chatId, msg, { parse_mode: 'Markdown' })
-                .catch((err) => console.error('[sendMessage 실패]', (err as Error).message ?? err));
+        if (!msg) {
+            return;
         }
+
+        const truncated: string = msg.length > TelegramBot.MAX_MSG_LENGTH
+            ? msg.substring(0, TelegramBot.MAX_MSG_LENGTH) + '\n\n...(생략)'
+            : msg;
+
+        this.bot.sendMessage(this.chatId, truncated, { parse_mode: 'Markdown' })
+            .catch((err) => console.error('[sendMessage 실패]', (err as Error).message ?? err));
     }
 
     /**
@@ -62,7 +75,9 @@ class TelegramBot {
             { command: '/start', description: '알리미 시작' },
             { command: '/stop', description: '알림 대기 중단' },
             { command: '/setdate', description: '날짜 설정 (YYYYMMDD)' },
-            { command: '/settheater', description: '극장 설정 (용아맥, 남돌비, 코돌비)' }
+            { command: '/settheater', description: '극장 설정 (용아맥, 남돌비, 코돌비)' },
+            { command: '/watchimax', description: '날짜 무관 용산 IMAX 신규 오픈 감시 시작' },
+            { command: '/unwatch', description: '용산 IMAX 신규 오픈 감시 중단' }
         ]);
 
         // 크롤링 시작
@@ -143,6 +158,32 @@ class TelegramBot {
                 } else {
                     this.sendMsg("잘못된 극장 설정입니다.\n다시 입력해 주세요.");
                 }
+            }
+        });
+
+        /* 날짜 무관 용산 IMAX 신규 오픈 감시 시작 (명령어 : "/watchimax") */
+        this.bot.onText(/\/watchimax/, async (msg, match) => {
+            if (this.imaxWatcher.isRunning()) {
+                this.sendMsg("이미 용산 IMAX 감시 중입니다.\n/unwatch 으로 중단할 수 있어요.");
+                return;
+            }
+
+            this.sendMsg("용산 IMAX 신규 오픈 감시를 시작합니다...\n(날짜와 무관하게 새 회차가 열리면 알려드려요)");
+
+            this.imaxWatcher.start()
+                .catch((err) => {
+                    console.error('[watchimax 예외]', err);
+                    this.sendMsg("IMAX 감시 중 예기치 않은 오류로 중단되었습니다. 다시 /watchimax 해보세요.");
+                });
+        });
+
+        /* 용산 IMAX 신규 오픈 감시 중단 (명령어 : "/unwatch") */
+        this.bot.onText(/\/unwatch/, (msg) => {
+            if (this.imaxWatcher.isRunning()) {
+                this.imaxWatcher.stop();
+                this.sendMsg("용산 IMAX 감시를 중단했습니다.");
+            } else {
+                this.sendMsg("현재 진행 중인 IMAX 감시가 없습니다.");
             }
         });
     }

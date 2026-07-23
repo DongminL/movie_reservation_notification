@@ -2,3 +2,4 @@ node_modules
 config.yaml
 scripts/content_pupp.js
 build
+data
