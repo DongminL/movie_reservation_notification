@@ -32,16 +32,16 @@
     4-1. 아래 내용대로 구성하기
     ``` yaml
     telegram:
-        token:    # 2번에서 확인한 Telegram Bot Token 값 넣어주기
-        chatId:   # 2번에서 확인한 Chat ID 값 넣어주기
+        token:    # 2번에서 확인한 Telegram Bot Token 값 설정하기
+        chatId:   # 2번에서 확인한 Chat ID 값 설정하기
 
     urls:
         imax: https://cgv.co.kr/cnm/movieBook/cinema # CGV 극장별 시간표 URL
         dolby: https://www.megabox.co.kr/booking/timetable  # 메가박스 시간표 URL
 
     watch:
-        horizonDays: # 오늘부터 며칠 뒤까지 조회할지 (일)
-        pollIntervalSec: # 폴링 주기 (초)
+        horizonDays: # 오늘부터 며칠 뒤까지 조회할지 (일) 설정하기
+        pollIntervalSec: # 폴링 주기 (초) 설정하기
     ```
 
 5. `npm start`로 알리미 실행하기
