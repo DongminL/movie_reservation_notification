@@ -1,6 +1,7 @@
 import Crawler from './crawler';
 import Puppeteer, { ElementHandle, Page } from 'puppeteer';
 import Cheerio from 'cheerio';
+import { CLOUD_SANDBOX_ARGS } from '../puppeteerArgs';
 
 
 class DolbyCrawler extends Crawler {
@@ -17,11 +18,7 @@ class DolbyCrawler extends Crawler {
         // 웹 크롤링을 위한 puppeteer 객체 생성
         this.browser = await Puppeteer.launch({
             headless: 'new',
-            args: [
-                '--no-sandbox',                            // 클라우드 VM에서 SUID 샌드박스 권한 없어 필요
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',                 // 저메모리 VM /dev/shm 부족 방지
-            ]
+            args: CLOUD_SANDBOX_ARGS
         });
 
         try {
