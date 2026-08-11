@@ -17,6 +17,9 @@ class ImaxCrawler extends Crawler {
             headless: 'new',
             args: [
                 '--disable-geolocation',                  // 위치 정보 자체 비활성화
+                '--no-sandbox',                            // 클라우드 VM에서 SUID 샌드박스 권한 없어 필요
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',                 // 저메모리 VM /dev/shm 부족 방지
             ]
         });
 

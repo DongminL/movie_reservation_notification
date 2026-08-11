@@ -16,7 +16,12 @@ class DolbyCrawler extends Crawler {
 
         // 웹 크롤링을 위한 puppeteer 객체 생성
         this.browser = await Puppeteer.launch({
-            headless: 'new'
+            headless: 'new',
+            args: [
+                '--no-sandbox',                            // 클라우드 VM에서 SUID 샌드박스 권한 없어 필요
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',                 // 저메모리 VM /dev/shm 부족 방지
+            ]
         });
 
         try {
