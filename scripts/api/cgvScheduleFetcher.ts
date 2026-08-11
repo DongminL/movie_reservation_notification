@@ -1,5 +1,6 @@
 import Puppeteer, { HTTPResponse } from 'puppeteer';
 import { config } from '../config';
+import { CLOUD_SANDBOX_ARGS } from '../puppeteerArgs';
 
 /* API 응답 원본 항목 */
 interface RawScreeningItem {
@@ -48,6 +49,7 @@ const SITE_NM = '용산아이파크몰';
 const SESSION_TTL_MS = 20 * 60 * 1000;
 
 const sleep = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
+export { sleep };
 
 /*
  * searchMovScnInfo에는 x-signature 같은 서명 헤더가 없고, Cloudflare가 발급하는
@@ -99,12 +101,7 @@ class CgvScheduleFetcher {
     private async fetchViaBrowserCrawl(scnYmd: string): Promise<Screening[]> {
         const browser = await Puppeteer.launch({
             headless: 'new',
-            args: [
-                '--disable-geolocation',
-                '--no-sandbox',                            // 클라우드 VM에서 SUID 샌드박스 권한 없어 필요
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',                 // 저메모리 VM /dev/shm 부족 방지
-            ]
+            args: ['--disable-geolocation', ...CLOUD_SANDBOX_ARGS]
         });
 
         try {
@@ -112,11 +109,13 @@ class CgvScheduleFetcher {
             const client = await page.target().createCDPSession();
             await client.send('Network.enable');
 
-            const urlByRequestId = new Map<string, { url: string; method: string }>();
+            const urlByRequestId = new Map<string, string>();
             const headersByRequestId = new Map<string, Record<string, string>>();
 
-            client.on('Network.requestWillBeSent', (event: { requestId: string; request: { url: string; method: string } }) => {
-                urlByRequestId.set(event.requestId, { url: event.request.url, method: event.request.method });
+            client.on('Network.requestWillBeSent', (event: { requestId: string; request: { url: string } }) => {
+                if (event.request.url.includes('searchMovScnInfo')) {
+                    urlByRequestId.set(event.requestId, event.request.url);
+                }
             });
             client.on('Network.requestWillBeSentExtraInfo', (event: { requestId: string; headers: Record<string, string> }) => {
                 headersByRequestId.set(event.requestId, event.headers);
@@ -156,12 +155,12 @@ class CgvScheduleFetcher {
     /* CDP로 캡처한 헤더에서 HTTP/2 의사 헤더(:authority 등)를 제외하고 세션으로 저장 */
     private captureSession(
         matchedUrl: string,
-        urlByRequestId: Map<string, { url: string; method: string }>,
+        urlByRequestId: Map<string, string>,
         headersByRequestId: Map<string, Record<string, string>>
     ): void {
-        for (const [requestId, info] of urlByRequestId) {
+        for (const [requestId, url] of urlByRequestId) {
             const rawHeaders = headersByRequestId.get(requestId);
-            if (info.url === matchedUrl && rawHeaders) {
+            if (url === matchedUrl && rawHeaders) {
                 const headers = Object.fromEntries(
                     Object.entries(rawHeaders).filter(([key]) => !key.startsWith(':'))
                 );
@@ -169,7 +168,8 @@ class CgvScheduleFetcher {
                 return;
             }
         }
-        // 캡처 실패해도 이번 응답 자체는 이미 받았으니 조용히 넘어간다 (다음 조회 때 다시 시도)
+        // 캡처 실패 시 세션이 채워지지 않아 다음 조회부터 계속 브라우저 크롤링으로 폴백됨 — 표면화
+        console.error('[CgvScheduleFetcher] 세션 캡처 실패, 다음 조회도 브라우저 크롤링으로 폴백됩니다.');
     }
 
     private parseScreenings(body: SearchMovScnInfoResponse, scnYmd: string): Screening[] {

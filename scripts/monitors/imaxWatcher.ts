@@ -2,7 +2,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { join, dirname } from 'path';
 import { config } from '../config';
-import CgvScheduleFetcher, { filterImax, Screening } from '../api/cgvScheduleFetcher';
+import CgvScheduleFetcher, { filterImax, Screening, sleep } from '../api/cgvScheduleFetcher';
 import MovieTime from '../crawlers/movieTime';
 
 const WATCH_THEATER = '용산아이파크몰';
@@ -82,8 +82,6 @@ class ImaxWatcher {
         let coldStartTotal = 0;
         let notifiedCount = 0;
 
-        let interrupted = false;
-
         console.log(`[ImaxWatcher] 사이클 시작 (${dates.length}일치 조회)`);
         const cycleStartedAt = Date.now();
 
@@ -91,45 +89,44 @@ class ImaxWatcher {
             const date = dates[i];
 
             if (this.isStop) {
-                interrupted = true;
                 break;
             }
 
-            let screenings: Screening[];
+            let screenings: Screening[] | null = null;
             try {
                 screenings = filterImax(await this.fetcher.fetchScreenings(date));
             } catch (err) {
                 console.error(`[ImaxWatcher] ${date} 조회 실패, 건너뜀`, err);
-                await this.trick(1, 2);
-                continue;
             }
 
-            const keys = screenings.map(buildKey);
-            currentSnapshot[date] = keys;
+            if (screenings) {
+                const keys = screenings.map(buildKey);
+                currentSnapshot[date] = keys;
 
-            if (this.isColdStart) {
-                coldStartTotal += keys.length;
-            } else {
-                const prevKeys = this.previousSnapshot[date];
-                const newScreenings = screenings.filter(
-                    s => !prevKeys || !prevKeys.includes(buildKey(s))
-                );
+                if (this.isColdStart) {
+                    coldStartTotal += keys.length;
+                } else {
+                    const prevKeys = this.previousSnapshot[date];
+                    const newScreenings = screenings.filter(
+                        s => !prevKeys || !prevKeys.includes(buildKey(s))
+                    );
 
-                if (newScreenings.length > 0) {
-                    console.log(`[ImaxWatcher] ${date} 신규 ${newScreenings.length}건 발견 — 알림 전송`);
-                    this.notify?.(this.buildMessage(date, newScreenings));
-                    notifiedCount += newScreenings.length;
+                    if (newScreenings.length > 0) {
+                        console.log(`[ImaxWatcher] ${date} 신규 ${newScreenings.length}건 발견 — 알림 전송`);
+                        this.notify?.(this.buildMessage(date, newScreenings));
+                        notifiedCount += newScreenings.length;
+                    }
                 }
-            }
 
-            console.log(`[ImaxWatcher] (${i + 1}/${dates.length}) ${date} IMAX ${screenings.length}건`);
+                console.log(`[ImaxWatcher] (${i + 1}/${dates.length}) ${date} IMAX ${screenings.length}건`);
+            }
 
             await this.trick(1, 2);
         }
 
         console.log(`[ImaxWatcher] 사이클 종료 (${Math.round((Date.now() - cycleStartedAt) / 1000)}초 소요)`);
 
-        if (interrupted) {
+        if (this.isStop) {
             return; // 중단 시 이번 사이클 결과는 버리고 스냅샷도 갱신하지 않음
         }
 
@@ -229,11 +226,7 @@ class ImaxWatcher {
     /* minSec ~ maxSec 사이 랜덤 지연 */
     private async trick(minSec: number, maxSec: number): Promise<void> {
         const randomSec = minSec + Math.random() * (maxSec - minSec);
-        await this.sleep(randomSec * 1000);
-    }
-
-    private async sleep(ms: number): Promise<void> {
-        await new Promise(resolve => setTimeout(resolve, ms));
+        await sleep(randomSec * 1000);
     }
 }
 
