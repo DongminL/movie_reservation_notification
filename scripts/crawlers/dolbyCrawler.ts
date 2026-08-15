@@ -1,6 +1,7 @@
 import Crawler from './crawler';
 import Puppeteer, { ElementHandle, Page } from 'puppeteer';
 import Cheerio from 'cheerio';
+import { CLOUD_SANDBOX_ARGS } from '../puppeteerArgs';
 
 
 class DolbyCrawler extends Crawler {
@@ -16,7 +17,8 @@ class DolbyCrawler extends Crawler {
 
         // 웹 크롤링을 위한 puppeteer 객체 생성
         this.browser = await Puppeteer.launch({
-            headless: 'new'
+            headless: 'new',
+            args: CLOUD_SANDBOX_ARGS
         });
 
         try {

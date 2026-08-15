@@ -1,6 +1,7 @@
 import Crawler from './crawler';
 import Puppeteer, { Page } from 'puppeteer';
 import MovieTime from './movieTime';
+import { CLOUD_SANDBOX_ARGS } from '../puppeteerArgs';
 
 class ImaxCrawler extends Crawler {
 
@@ -15,9 +16,7 @@ class ImaxCrawler extends Crawler {
         // 웹 크롤링을 위한 puppeteer 브라우저 생성
         this.browser = await Puppeteer.launch({
             headless: 'new',
-            args: [
-                '--disable-geolocation',                  // 위치 정보 자체 비활성화
-            ]
+            args: ['--disable-geolocation', ...CLOUD_SANDBOX_ARGS]
         });
 
         try {

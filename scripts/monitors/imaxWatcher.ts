@@ -2,7 +2,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { join, dirname } from 'path';
 import { config } from '../config';
-import CgvScheduleFetcher, { filterImax, Screening } from '../api/cgvScheduleFetcher';
+import CgvScheduleFetcher, { filterImax, Screening, sleep } from '../api/cgvScheduleFetcher';
 import MovieTime from '../crawlers/movieTime';
 
 const WATCH_THEATER = '용산아이파크몰';
@@ -33,6 +33,7 @@ class ImaxWatcher {
     private previousSnapshot: Snapshot = {};
     private isColdStart: boolean = true;
     private consecutiveErrors: number = 0;
+    private readonly fetcher: CgvScheduleFetcher = new CgvScheduleFetcher();
 
     /* 감시 루프 시작. stop()이 호출될 때까지 반환하지 않는다 */
     async start(): Promise<void> {
@@ -56,7 +57,7 @@ class ImaxWatcher {
                 break;
             }
 
-            await this.sleep(config.watch.pollIntervalSec * 1000);
+            await this.trick(config.watch.pollIntervalSec - 5, config.watch.pollIntervalSec + 5);
         }
     }
 
@@ -81,33 +82,24 @@ class ImaxWatcher {
         let coldStartTotal = 0;
         let notifiedCount = 0;
 
-        const fetcher = new CgvScheduleFetcher();
-        let interrupted = false;
-
         console.log(`[ImaxWatcher] 사이클 시작 (${dates.length}일치 조회)`);
         const cycleStartedAt = Date.now();
 
-        try {
-            await fetcher.open();
-            console.log('[ImaxWatcher] 브라우저 오픈 및 극장 선택 완료');
+        for (let i = 0; i < dates.length; i++) {
+            const date = dates[i];
 
-            for (let i = 0; i < dates.length; i++) {
-                const date = dates[i];
+            if (this.isStop) {
+                break;
+            }
 
-                if (this.isStop) {
-                    interrupted = true;
-                    break;
-                }
+            let screenings: Screening[] | null = null;
+            try {
+                screenings = filterImax(await this.fetcher.fetchScreenings(date));
+            } catch (err) {
+                console.error(`[ImaxWatcher] ${date} 조회 실패, 건너뜀`, err);
+            }
 
-                let screenings: Screening[];
-                try {
-                    screenings = filterImax(await fetcher.fetchScreenings(date));
-                } catch (err) {
-                    console.error(`[ImaxWatcher] ${date} 조회 실패, 건너뜀`, err);
-                    await this.trick();
-                    continue;
-                }
-
+            if (screenings) {
                 const keys = screenings.map(buildKey);
                 currentSnapshot[date] = keys;
 
@@ -127,16 +119,14 @@ class ImaxWatcher {
                 }
 
                 console.log(`[ImaxWatcher] (${i + 1}/${dates.length}) ${date} IMAX ${screenings.length}건`);
-
-                await this.trick();
             }
-        } finally {
-            await fetcher.close();
+
+            await this.trick(1, 2);
         }
 
         console.log(`[ImaxWatcher] 사이클 종료 (${Math.round((Date.now() - cycleStartedAt) / 1000)}초 소요)`);
 
-        if (interrupted) {
+        if (this.isStop) {
             return; // 중단 시 이번 사이클 결과는 버리고 스냅샷도 갱신하지 않음
         }
 
@@ -233,14 +223,10 @@ class ImaxWatcher {
         fs.writeFileSync(SNAPSHOT_PATH, JSON.stringify(snapshot, null, 2), 'utf-8');
     }
 
-    /* 날짜별 요청 사이 랜덤 지연 (Cloudflare 차단 회피) */
-    private async trick(): Promise<void> {
-        const random = Math.random() * 2 + 1; // 1~3초
-        await this.sleep(random * 1000);
-    }
-
-    private async sleep(ms: number): Promise<void> {
-        await new Promise(resolve => setTimeout(resolve, ms));
+    /* minSec ~ maxSec 사이 랜덤 지연 */
+    private async trick(minSec: number, maxSec: number): Promise<void> {
+        const randomSec = minSec + Math.random() * (maxSec - minSec);
+        await sleep(randomSec * 1000);
     }
 }
 
