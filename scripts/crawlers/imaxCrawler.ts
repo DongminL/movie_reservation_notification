@@ -1,7 +1,7 @@
 import Crawler from './crawler';
 import Puppeteer, { Page } from 'puppeteer';
 import MovieTime from './movieTime';
-import { CLOUD_SANDBOX_ARGS } from '../puppeteerArgs';
+import { CLOUD_SANDBOX_ARGS } from '../utils/puppeteerArgs';
 
 class ImaxCrawler extends Crawler {
 

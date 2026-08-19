@@ -1,6 +1,6 @@
 import Puppeteer, { HTTPResponse } from 'puppeteer';
 import { config } from '../config';
-import { CLOUD_SANDBOX_ARGS } from '../puppeteerArgs';
+import { CLOUD_SANDBOX_ARGS } from '../utils/puppeteerArgs';
 
 /* API 응답 원본 항목 */
 interface RawScreeningItem {
