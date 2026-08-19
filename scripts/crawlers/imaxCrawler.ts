@@ -2,6 +2,7 @@ import Crawler from './crawler';
 import Puppeteer, { Page } from 'puppeteer';
 import MovieTime from './movieTime';
 import { CLOUD_SANDBOX_ARGS } from '../utils/puppeteerArgs';
+import { buildCgvWebUrl, CgvParams } from '../utils/cgvLinkGenerator';
 
 class ImaxCrawler extends Crawler {
 
@@ -60,7 +61,8 @@ class ImaxCrawler extends Crawler {
 
                     // 출력할 내용
                     let result = MovieTime.toString(movieTimeMap, targetTheater, this.date);
-                    result += `[예매하러 가기](${targetUrl})\n`;
+                    const cgvParams: CgvParams = { siteNo: '0013', siteNm: targetTheater, scnYmd: this.date };
+                    result += `[예매하러 가기](${buildCgvWebUrl(cgvParams)})\n`;
                     console.log(result);
 
                     await this.closeQuietly(page);  // puppeteer 페이지 종료
