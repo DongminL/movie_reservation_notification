@@ -1,7 +1,7 @@
 import Crawler from './crawler';
 import Puppeteer, { ElementHandle, Page } from 'puppeteer';
 import Cheerio from 'cheerio';
-import { CLOUD_SANDBOX_ARGS } from '../puppeteerArgs';
+import { CLOUD_SANDBOX_ARGS } from '../utils/puppeteerArgs';
 
 
 class DolbyCrawler extends Crawler {

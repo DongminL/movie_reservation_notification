@@ -4,6 +4,7 @@ import { join, dirname } from 'path';
 import { config } from '../config';
 import CgvScheduleFetcher, { filterImax, Screening, sleep } from '../api/cgvScheduleFetcher';
 import MovieTime from '../crawlers/movieTime';
+import { buildCgvWebUrl, CgvParams } from '../utils/cgvLinkGenerator';
 
 const WATCH_THEATER = '용산아이파크몰';
 
@@ -191,8 +192,9 @@ class ImaxWatcher {
             }));
         }
 
+        const cgvParams: CgvParams = { siteNo: '0013', siteNm: WATCH_THEATER, scnYmd: date };
         let body: string = MovieTime.toString(movieTimeMap, WATCH_THEATER, date);
-        body += `[예매하러 가기](https://cgv.co.kr/cnm/movieBook/cinema?siteNo=0013&siteNm=${WATCH_THEATER}&scnYmd=${date})\n`;
+        body += `[예매하러 가기](${buildCgvWebUrl(cgvParams)})`;
 
         return body;
     }
